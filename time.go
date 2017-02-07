@@ -160,3 +160,30 @@ func (t *DateTime) UnmarshalEasyJSON(in *jlexer.Lexer) {
 		*t = tt
 	}
 }
+
+// GetBSON customizes the bson type for mgo.v2
+func (t DateTime) GetBSON() (interface{}, error) {
+	return time.Time(t), nil
+}
+
+// SetBSON customizes the bson type for mgo.v2
+func (t *DateTime) SetBSON(raw bson.Raw) error {
+	if len(raw.Data) < 8 {
+		return fmt.Errorf("couldn't convert bson data to a Timestamp")
+	}
+	b := raw.Data[0 : 8]
+	i := int64((uint64(b[0]) << 0) |
+		(uint64(b[1]) << 8) |
+		(uint64(b[2]) << 16) |
+		(uint64(b[3]) << 24) |
+		(uint64(b[4]) << 32) |
+		(uint64(b[5]) << 40) |
+		(uint64(b[6]) << 48) |
+		(uint64(b[7]) << 56))
+	if i == -62135596800000 {
+		*t = DateTime(time.Time{})
+	} else {
+		*t = DateTime(time.Unix(i/1e3, i%1e3*1e6))
+	}
+	return nil
+}
