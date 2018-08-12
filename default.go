@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/fredbi/uri"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
@@ -118,6 +119,11 @@ func IsEmail(str string) bool {
 	return e == nil && addr.Address != ""
 }
 
+// IsURI validates a RFC3986 URI
+func IsURI(str string) bool {
+	return uri.IsURI(str)
+}
+
 func init() {
 	// register formats in the default registry:
 	//   - byte
@@ -140,7 +146,7 @@ func init() {
 	//   - uuid4
 	//   - uuid5
 	u := URI("")
-	Default.Add("uri", &u, govalidator.IsRequestURI)
+	Default.Add("uri", &u, IsURI)
 
 	eml := Email("")
 	Default.Add("email", &eml, IsEmail)
