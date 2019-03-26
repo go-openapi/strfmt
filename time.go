@@ -80,7 +80,7 @@ func ParseDateTime(data string) (DateTime, error) {
 			continue
 		}
 		lastError = nil
-		return DateTime(dd), nil
+		return DateTime{dd}, nil
 	}
 	return DateTime{}, lastError
 }
@@ -91,16 +91,18 @@ func ParseDateTime(data string) (DateTime, error) {
 // This just tries to make it worry-free.
 //
 // swagger:strfmt date-time
-type DateTime time.Time
+type DateTime struct {
+	time.Time
+}
 
 // NewDateTime is a representation of zero value for DateTime type
 func NewDateTime() DateTime {
-	return DateTime(time.Unix(0, 0).UTC())
+	return DateTime{time.Unix(0, 0).UTC()}
 }
 
 // String converts this time to a string
 func (t DateTime) String() string {
-	return time.Time(t).Format(MarshalFormat)
+	return t.Format(MarshalFormat)
 }
 
 // MarshalText implements the text marshaller interface
@@ -127,7 +129,7 @@ func (t *DateTime) Scan(raw interface{}) error {
 	case string:
 		return t.UnmarshalText([]byte(v))
 	case time.Time:
-		*t = DateTime(v)
+		*t = DateTime{v}
 	case nil:
 		*t = DateTime{}
 	default:
@@ -151,7 +153,7 @@ func (t DateTime) MarshalJSON() ([]byte, error) {
 
 // MarshalEasyJSON writes the DateTime to a easyjson.Writer
 func (t DateTime) MarshalEasyJSON(w *jwriter.Writer) {
-	w.String(time.Time(t).Format(MarshalFormat))
+	w.String(t.Format(MarshalFormat))
 }
 
 // UnmarshalJSON sets the DateTime from JSON

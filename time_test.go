@@ -41,7 +41,7 @@ var (
 )
 
 func TestNewDateTime(t *testing.T) {
-	assert.EqualValues(t, time.Unix(0, 0).UTC(), NewDateTime())
+	assert.EqualValues(t, DateTime{time.Unix(0, 0).UTC()}, NewDateTime())
 }
 
 func TestParseDateTime_errorCases(t *testing.T) {
@@ -57,7 +57,7 @@ func TestParseDateTime_fullCycle(t *testing.T) {
 
 		parsed, err := ParseDateTime(example.str)
 		assert.NoError(t, err)
-		assert.EqualValues(t, example.time, parsed)
+		assert.EqualValues(t, DateTime{example.time}, parsed)
 
 		mt, err := parsed.MarshalText()
 		assert.NoError(t, err)
@@ -73,12 +73,12 @@ func TestParseDateTime_fullCycle(t *testing.T) {
 		pp := NewDateTime()
 		err = pp.UnmarshalText(mt)
 		assert.NoError(t, err)
-		assert.EqualValues(t, example.time, pp)
+		assert.EqualValues(t, DateTime{example.time}, pp)
 
 		pp = NewDateTime()
 		err = pp.Scan(mt)
 		assert.NoError(t, err)
-		assert.Equal(t, DateTime(example.time), pp)
+		assert.Equal(t, DateTime{example.time}, pp)
 	}
 }
 
@@ -119,7 +119,7 @@ func TestDateTime_UnmarshalText(t *testing.T) {
 		pp := NewDateTime()
 		err := pp.UnmarshalText(example.in)
 		assert.NoError(t, err)
-		assert.EqualValues(t, example.time, pp)
+		assert.EqualValues(t, DateTime{example.time}, pp)
 
 		// Other way around
 		val, erv := pp.Value()
@@ -134,7 +134,7 @@ func TestDateTime_UnmarshalJSON(t *testing.T) {
 		pp := NewDateTime()
 		err := pp.UnmarshalJSON(esc(example.in))
 		assert.NoError(t, err)
-		assert.EqualValues(t, example.time, pp)
+		assert.EqualValues(t, DateTime{example.time}, pp)
 	}
 
 	// Check UnmarshalJSON failure with no lexed items
@@ -158,7 +158,7 @@ func esc(v []byte) []byte {
 func TestDateTime_MarshalText(t *testing.T) {
 	for caseNum, example := range testCases {
 		t.Logf("Case #%d", caseNum)
-		dt := DateTime(example.time)
+		dt := DateTime{example.time}
 		mt, err := dt.MarshalText()
 		assert.NoError(t, err)
 		assert.Equal(t, []byte(example.str), mt)
@@ -167,7 +167,7 @@ func TestDateTime_MarshalText(t *testing.T) {
 func TestDateTime_MarshalJSON(t *testing.T) {
 	for caseNum, example := range testCases {
 		t.Logf("Case #%d", caseNum)
-		dt := DateTime(example.time)
+		dt := DateTime{example.time}
 		bb, err := dt.MarshalJSON()
 		assert.NoError(t, err)
 		assert.EqualValues(t, esc([]byte(example.str)), bb)
@@ -181,17 +181,17 @@ func TestDateTime_Scan(t *testing.T) {
 		pp := NewDateTime()
 		err := pp.Scan(example.in)
 		assert.NoError(t, err)
-		assert.Equal(t, DateTime(example.time), pp)
+		assert.Equal(t, DateTime{example.time}, pp)
 
 		pp = NewDateTime()
 		err = pp.Scan(string(example.in))
 		assert.NoError(t, err)
-		assert.Equal(t, DateTime(example.time), pp)
+		assert.Equal(t, DateTime{example.time}, pp)
 
 		pp = NewDateTime()
 		err = pp.Scan(example.time)
 		assert.NoError(t, err)
-		assert.Equal(t, DateTime(example.time), pp)
+		assert.Equal(t, DateTime{example.time}, pp)
 	}
 }
 
@@ -219,7 +219,7 @@ func TestDateTime_Scan_Failed(t *testing.T) {
 func TestDateTime_BSON(t *testing.T) {
 	for caseNum, example := range testCases {
 		t.Logf("Case #%d", caseNum)
-		dt := DateTime(example.time)
+		dt := DateTime{example.time}
 
 		bsonData, err := bson.Marshal(&dt)
 		assert.NoError(t, err)
