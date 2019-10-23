@@ -201,3 +201,30 @@ func (t *DateTime) DeepCopy() *DateTime {
 	t.DeepCopyInto(out)
 	return out
 }
+
+// GobEncode implements the gob.GobEncoder interface.
+func (t DateTime) GobEncode() ([]byte, error) {
+	return t.MarshalBinary()
+}
+
+// GobDecode implements the gob.GobDecoder interface.
+func (t *DateTime) GobDecode(data []byte) error {
+	return t.UnmarshalBinary(data)
+}
+
+// MarshalBinary implements the encoding.BinaryMarshaler interface.
+func (t DateTime) MarshalBinary() ([]byte, error) {
+	return time.Time(t).MarshalBinary()
+}
+
+// UnmarshalBinary implements the encoding.BinaryUnmarshaler interface.
+func (t *DateTime) UnmarshalBinary(data []byte) error {
+	var original time.Time
+	err := original.UnmarshalBinary(data)
+	if err != nil {
+		return err
+	}
+
+	*t = DateTime(original)
+	return nil
+}

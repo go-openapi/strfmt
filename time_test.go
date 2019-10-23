@@ -16,6 +16,7 @@ package strfmt
 
 import (
 	"bytes"
+	"encoding/gob"
 	"testing"
 	"time"
 
@@ -251,4 +252,20 @@ func TestDeepCopyDateTime(t *testing.T) {
 	var inNil *DateTime
 	out3 := inNil.DeepCopy()
 	assert.Nil(t, out3)
+}
+
+func TestGobEncodingDateTime(t *testing.T) {
+	now := time.Now()
+
+	b := bytes.Buffer{}
+	enc := gob.NewEncoder(&b)
+	err := enc.Encode(DateTime(now))
+	assert.NoError(t, err)
+	assert.NotEmpty(t, b.Bytes())
+
+	var result DateTime
+	dec := gob.NewDecoder(&b)
+	err = dec.Decode(&result)
+	assert.NoError(t, err)
+	assert.Equal(t, DateTime(now).String(), result.String())
 }
