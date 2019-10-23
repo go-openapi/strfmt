@@ -170,11 +170,13 @@ func (d Date) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary implements the encoding.BinaryUnmarshaler interface.
 func (d *Date) UnmarshalBinary(data []byte) error {
 	var original time.Time
+
 	err := original.UnmarshalBinary(data)
 	if err != nil {
 		return err
 	}
 
 	*d = Date(original)
+
 	return nil
 }

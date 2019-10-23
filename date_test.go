@@ -152,8 +152,11 @@ func TestGobEncodingDate(t *testing.T) {
 	assert.NotEmpty(t, b.Bytes())
 
 	var result Date
+
 	dec := gob.NewDecoder(&b)
 	err = dec.Decode(&result)
 	assert.NoError(t, err)
-	assert.Equal(t, Date(now).String(), result.String())
+	assert.Equal(t, now.Year(), time.Time(result).Year())
+	assert.Equal(t, now.Month(), time.Time(result).Month())
+	assert.Equal(t, now.Day(), time.Time(result).Day())
 }
