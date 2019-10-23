@@ -15,8 +15,10 @@
 package strfmt
 
 import (
+	"bytes"
 	"database/sql"
 	"database/sql/driver"
+	"encoding/gob"
 	"testing"
 	"time"
 
@@ -138,4 +140,23 @@ func TestDeepCopyDate(t *testing.T) {
 	var inNil *Date
 	out3 := inNil.DeepCopy()
 	assert.Nil(t, out3)
+}
+
+func TestGobEncodingDate(t *testing.T) {
+	now := time.Now()
+
+	b := bytes.Buffer{}
+	enc := gob.NewEncoder(&b)
+	err := enc.Encode(Date(now))
+	assert.NoError(t, err)
+	assert.NotEmpty(t, b.Bytes())
+
+	var result Date
+
+	dec := gob.NewDecoder(&b)
+	err = dec.Decode(&result)
+	assert.NoError(t, err)
+	assert.Equal(t, now.Year(), time.Time(result).Year())
+	assert.Equal(t, now.Month(), time.Time(result).Month())
+	assert.Equal(t, now.Day(), time.Time(result).Day())
 }
