@@ -233,7 +233,21 @@ func TestDateTime_BSON(t *testing.T) {
 		var dtCopy DateTime
 		err = bson.Unmarshal(bsonData, &dtCopy)
 		assert.NoError(t, err)
-		assert.Equal(t, dt, dtCopy)
+		// BSON DateTime type loses timezone information, so compare UTC()
+		assert.Equal(t, time.Time(dt).UTC(), time.Time(dtCopy).UTC())
+
+		// Check value marshaling explicitly
+		m := bson.M{"data": dt}
+		bsonData, err = bson.Marshal(&m)
+		assert.NoError(t, err)
+
+		var mCopy bson.M
+		err = bson.Unmarshal(bsonData, &mCopy)
+		assert.NoError(t, err)
+
+		data, ok := m["data"].(DateTime)
+		assert.Equal(t, true, ok)
+		assert.Equal(t, time.Time(dt).UTC(), time.Time(data).UTC())
 	}
 }
 
