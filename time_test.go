@@ -32,6 +32,7 @@ var (
 		time time.Time // its representation in time.Time
 		str  string    // its marshalled representation
 	}{
+		{[]byte("2014-12-15 08:00:00"), time.Date(2014, 12, 15, 8, 0, 0, 0, time.UTC), "2014-12-15T08:00:00.000Z"},
 		{[]byte("2014-12-15T08:00:00"), time.Date(2014, 12, 15, 8, 0, 0, 0, time.UTC), "2014-12-15T08:00:00.000Z"},
 		{[]byte("2014-12-15T08:00"), time.Date(2014, 12, 15, 8, 0, 0, 0, time.UTC), "2014-12-15T08:00:00.000Z"},
 		{[]byte("2014-12-15T08:00Z"), time.Date(2014, 12, 15, 8, 0, 0, 0, time.UTC), "2014-12-15T08:00:00.000Z"},
