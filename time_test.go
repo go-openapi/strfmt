@@ -28,22 +28,23 @@ var (
 	p, _ = time.Parse(time.RFC3339Nano, "2011-08-18T19:03:37.000000000+01:00")
 
 	testCases = []struct {
-		in   []byte    // externally sourced data -- to be unmarshalled
-		time time.Time // its representation in time.Time
-		str  string    // its marshalled representation
+		in     []byte    // externally sourced data -- to be unmarshalled
+		time   time.Time // its representation in time.Time
+		str    string    // its marshalled representation
+		utcStr string    // the marshaled representation as utc
 	}{
-		{[]byte("2014-12-15T08:00:00"), time.Date(2014, 12, 15, 8, 0, 0, 0, time.UTC), "2014-12-15T08:00:00.000Z"},
-		{[]byte("2014-12-15T08:00"), time.Date(2014, 12, 15, 8, 0, 0, 0, time.UTC), "2014-12-15T08:00:00.000Z"},
-		{[]byte("2014-12-15T08:00Z"), time.Date(2014, 12, 15, 8, 0, 0, 0, time.UTC), "2014-12-15T08:00:00.000Z"},
-		{[]byte("2018-01-28T23:54Z"), time.Date(2018, 01, 28, 23, 54, 0, 0, time.UTC), "2018-01-28T23:54:00.000Z"},
-		{[]byte("2014-12-15T08:00:00.000Z"), time.Date(2014, 12, 15, 8, 0, 0, 0, time.UTC), "2014-12-15T08:00:00.000Z"},
-		{[]byte("2011-08-18T19:03:37.000000000+01:00"), time.Date(2011, 8, 18, 19, 3, 37, 0, p.Location()), "2011-08-18T19:03:37.000+01:00"},
-		{[]byte("2011-08-18T19:03:37.000000+0100"), time.Date(2011, 8, 18, 19, 3, 37, 0, p.Location()), "2011-08-18T19:03:37.000+01:00"},
-		{[]byte("2011-08-18T19:03:37.000+0100"), time.Date(2011, 8, 18, 19, 3, 37, 0, p.Location()), "2011-08-18T19:03:37.000+01:00"},
-		{[]byte("2014-12-15T19:30:20Z"), time.Date(2014, 12, 15, 19, 30, 20, 0, time.UTC), "2014-12-15T19:30:20.000Z"},
-		{[]byte("0001-01-01T00:00:00Z"), time.Time{}.UTC(), "0001-01-01T00:00:00.000Z"},
-		{[]byte(""), time.Unix(0, 0).UTC(), "1970-01-01T00:00:00.000Z"},
-		{[]byte(nil), time.Unix(0, 0).UTC(), "1970-01-01T00:00:00.000Z"},
+		{[]byte("2014-12-15T08:00:00"), time.Date(2014, 12, 15, 8, 0, 0, 0, time.UTC), "2014-12-15T08:00:00.000Z", "2014-12-15T08:00:00.000Z"},
+		{[]byte("2014-12-15T08:00"), time.Date(2014, 12, 15, 8, 0, 0, 0, time.UTC), "2014-12-15T08:00:00.000Z", "2014-12-15T08:00:00.000Z"},
+		{[]byte("2014-12-15T08:00Z"), time.Date(2014, 12, 15, 8, 0, 0, 0, time.UTC), "2014-12-15T08:00:00.000Z", "2014-12-15T08:00:00.000Z"},
+		{[]byte("2018-01-28T23:54Z"), time.Date(2018, 01, 28, 23, 54, 0, 0, time.UTC), "2018-01-28T23:54:00.000Z", "2018-01-28T23:54:00.000Z"},
+		{[]byte("2014-12-15T08:00:00.000Z"), time.Date(2014, 12, 15, 8, 0, 0, 0, time.UTC), "2014-12-15T08:00:00.000Z", "2014-12-15T08:00:00.000Z"},
+		{[]byte("2011-08-18T19:03:37.000000000+01:00"), time.Date(2011, 8, 18, 19, 3, 37, 0, p.Location()), "2011-08-18T19:03:37.000+01:00", "2011-08-18T18:03:37.000Z"},
+		{[]byte("2011-08-18T19:03:37.000000+0100"), time.Date(2011, 8, 18, 19, 3, 37, 0, p.Location()), "2011-08-18T19:03:37.000+01:00", "2011-08-18T18:03:37.000Z"},
+		{[]byte("2011-08-18T19:03:37.000+0100"), time.Date(2011, 8, 18, 19, 3, 37, 0, p.Location()), "2011-08-18T19:03:37.000+01:00", "2011-08-18T18:03:37.000Z"},
+		{[]byte("2014-12-15T19:30:20Z"), time.Date(2014, 12, 15, 19, 30, 20, 0, time.UTC), "2014-12-15T19:30:20.000Z", "2014-12-15T19:30:20.000Z"},
+		{[]byte("0001-01-01T00:00:00Z"), time.Time{}.UTC(), "0001-01-01T00:00:00.000Z", "0001-01-01T00:00:00.000Z"},
+		{[]byte(""), time.Unix(0, 0).UTC(), "1970-01-01T00:00:00.000Z", "1970-01-01T00:00:00.000Z"},
+		{[]byte(nil), time.Unix(0, 0).UTC(), "1970-01-01T00:00:00.000Z", "1970-01-01T00:00:00.000Z"},
 	}
 )
 
@@ -182,6 +183,23 @@ func TestDateTime_MarshalJSON(t *testing.T) {
 		bb, err := dt.MarshalJSON()
 		assert.NoError(t, err)
 		assert.EqualValues(t, esc([]byte(example.str)), bb)
+	}
+}
+func TestDateTime_MarshalJSON_Override(t *testing.T) {
+	oldNormalizeMarshal := NormalizeTimeForMarshal
+	defer func() {
+		NormalizeTimeForMarshal = oldNormalizeMarshal
+	}()
+
+	NormalizeTimeForMarshal = func(t time.Time) time.Time {
+		return t.UTC()
+	}
+	for caseNum, example := range testCases {
+		t.Logf("Case #%d", caseNum)
+		dt := DateTime(example.time.UTC())
+		bb, err := dt.MarshalJSON()
+		assert.NoError(t, err)
+		assert.EqualValues(t, esc([]byte(example.utcStr)), bb)
 	}
 }
 

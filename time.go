@@ -77,6 +77,9 @@ var (
 	DateTimeFormats = []string{RFC3339Micro, RFC3339MicroNoColon, RFC3339Millis, RFC3339MillisNoColon, time.RFC3339, time.RFC3339Nano, ISO8601LocalTime, ISO8601TimeWithReducedPrecision, ISO8601TimeWithReducedPrecisionLocaltime}
 	// MarshalFormat sets the time resolution format used for marshaling time (set to milliseconds)
 	MarshalFormat = RFC3339Millis
+
+	// NormalizeTimeForMarshal
+	NormalizeTimeForMarshal = func(t time.Time) time.Time { return t }
 )
 
 // ParseDateTime parses a string that represents an ISO8601 time or a unix epoch
@@ -111,7 +114,7 @@ func NewDateTime() DateTime {
 
 // String converts this time to a string
 func (t DateTime) String() string {
-	return time.Time(t).Format(MarshalFormat)
+	return NormalizeTimeForMarshal(time.Time(t)).Format(MarshalFormat)
 }
 
 // MarshalText implements the text marshaller interface
@@ -155,7 +158,7 @@ func (t DateTime) Value() (driver.Value, error) {
 
 // MarshalJSON returns the DateTime as JSON
 func (t DateTime) MarshalJSON() ([]byte, error) {
-	return json.Marshal(time.Time(t).Format(MarshalFormat))
+	return json.Marshal(NormalizeTimeForMarshal(time.Time(t)).Format(MarshalFormat))
 }
 
 // UnmarshalJSON sets the DateTime from JSON
@@ -204,7 +207,7 @@ func (t *DateTime) UnmarshalBSON(data []byte) error {
 func (t DateTime) MarshalBSONValue() (bsontype.Type, []byte, error) {
 	// UnixNano cannot be used, the result of calling UnixNano on the zero
 	// Time is undefined.
-	i64 := time.Time(t).Unix() * 1000
+	i64 := NormalizeTimeForMarshal(time.Time(t)).Unix() * 1000
 	buf := make([]byte, 8)
 	binary.LittleEndian.PutUint64(buf, uint64(i64))
 
@@ -250,7 +253,7 @@ func (t *DateTime) GobDecode(data []byte) error {
 
 // MarshalBinary implements the encoding.BinaryMarshaler interface.
 func (t DateTime) MarshalBinary() ([]byte, error) {
-	return time.Time(t).MarshalBinary()
+	return NormalizeTimeForMarshal(time.Time(t)).MarshalBinary()
 }
 
 // UnmarshalBinary implements the encoding.BinaryUnmarshaler interface.
