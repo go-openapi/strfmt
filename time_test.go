@@ -231,7 +231,7 @@ func TestDateTime_Scan_Failed(t *testing.T) {
 	err := pp.Scan(nil)
 	assert.NoError(t, err)
 	// Zero values differ...
-	//assert.Equal(t, zero, pp)
+	// assert.Equal(t, zero, pp)
 	assert.Equal(t, DateTime{}, pp)
 
 	err = pp.Scan("")

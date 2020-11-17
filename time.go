@@ -78,7 +78,8 @@ var (
 	// MarshalFormat sets the time resolution format used for marshaling time (set to milliseconds)
 	MarshalFormat = RFC3339Millis
 
-	// NormalizeTimeForMarshal
+	// NormalizeTimeForMarshal provides a normalization function on time befeore marshalling (e.g. time.UTC).
+	// By default, the time value is not changed.
 	NormalizeTimeForMarshal = func(t time.Time) time.Time { return t }
 )
 
