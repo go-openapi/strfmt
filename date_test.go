@@ -160,3 +160,15 @@ func TestGobEncodingDate(t *testing.T) {
 	assert.Equal(t, now.Month(), time.Time(result).Month())
 	assert.Equal(t, now.Day(), time.Time(result).Day())
 }
+
+func TestDate_Equal(t *testing.T) {
+	t.Parallel()
+
+	d1 := Date(time.Date(2020, 10, 11, 12, 13, 14, 15, time.UTC))
+	d2 := Date(time.Date(2020, 10, 11, 12, 13, 14, 15, time.UTC))
+	d3 := Date(time.Date(2020, 11, 12, 13, 14, 15, 16, time.UTC))
+
+	assert.True(t, d1.Equal(d1), "Same Date should Equal itself")
+	assert.True(t, d1.Equal(d2), "Date instances should be equal")
+	assert.False(t, d1.Equal(d3), "Date instances should not be equal")
+}
