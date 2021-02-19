@@ -227,6 +227,32 @@ func TestFormatUUID(t *testing.T) {
 	assert.EqualValues(t, UUID(""), uuidZero)
 }
 
+func TestFormatULID(t *testing.T) {
+	ulid := ULID("01EYXZVGBHG26MFTG4JWR4K558")
+	str := "01EYXZW663G7PYHVSQ8WTMDA67"
+	testStringFormat(t, &ulid, "ulid", str, []string{
+		"01EYXZVGBHG26MFTG4JWR4K558",
+		"01EYXZW663G7PYHVSQ8WTMDA67",
+		"7ZZZZZZZZZ0000000000000000",
+		"00000000000000000000000000",
+		"7ZZZZZZZZZZZZZZZZZZZZZZZZZ",
+	}, []string{
+		"not-a-ulid",
+		"8000000000FJ2MMFJ3ATV3XB2C",
+		"81EYY0NEYJZZZZZZZZZZZZZZZZ",
+		"7ZZZZZZZZZ000000000000000U",
+		"7ZZZZZZZZZ000000000000000L",
+		"7ZZZZZZZZZ000000000000000O",
+		"7ZZZZZZZZZ000000000000000I",
+	})
+
+	// special case for zero ULID
+	var ulidZero ULID
+	err := ulidZero.UnmarshalJSON([]byte(jsonNull))
+	assert.NoError(t, err)
+	assert.EqualValues(t, ULID(""), ulidZero)
+}
+
 func TestFormatISBN(t *testing.T) {
 	isbn := ISBN("0321751043")
 	str := string("0321751043")

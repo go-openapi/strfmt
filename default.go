@@ -65,6 +65,8 @@ const (
 	UUID4Pattern = `(?i)^[0-9a-f]{8}-?[0-9a-f]{4}-?4[0-9a-f]{3}-?[89ab][0-9a-f]{3}-?[0-9a-f]{12}$`
 	// UUID5Pattern Regex for UUID5 that allows uppercase
 	UUID5Pattern = `(?i)^[0-9a-f]{8}-?[0-9a-f]{4}-?5[0-9a-f]{3}-?[89ab][0-9a-f]{3}-?[0-9a-f]{12}$`
+	// ULIDPattern Regex for ULID, case insensitive
+	ULIDPattern = `(?i)^[0-7]{1}[0-9a-hjkmnp-tv-z]{25}$`
 	// json null type
 	jsonNull = "null"
 )
@@ -75,6 +77,7 @@ var (
 	rxUUID3    = regexp.MustCompile(UUID3Pattern)
 	rxUUID4    = regexp.MustCompile(UUID4Pattern)
 	rxUUID5    = regexp.MustCompile(UUID5Pattern)
+	rxULID     = regexp.MustCompile(ULIDPattern)
 )
 
 // IsHostname returns true when the string is a valid hostname
@@ -119,6 +122,11 @@ func IsUUID5(str string) bool {
 	return rxUUID5.MatchString(str)
 }
 
+// IsULID returns true is the string matches a ULID, case insensitive
+func IsULID(str string) bool {
+	return rxULID.MatchString(str)
+}
+
 // IsEmail validates an email address.
 func IsEmail(str string) bool {
 	addr, e := mail.ParseAddress(str)
@@ -147,6 +155,7 @@ func init() {
 	//   - uuid3
 	//   - uuid4
 	//   - uuid5
+	//   - ulid
 	u := URI("")
 	Default.Add("uri", &u, govalidator.IsRequestURI)
 
@@ -179,6 +188,9 @@ func init() {
 
 	uid5 := UUID5("")
 	Default.Add("uuid5", &uid5, IsUUID5)
+
+	ulid := ULID("")
+	Default.Add("ulid", &ulid, IsULID)
 
 	isbn := ISBN("")
 	Default.Add("isbn", &isbn, func(str string) bool { return govalidator.IsISBN10(str) || govalidator.IsISBN13(str) })
@@ -1301,6 +1313,98 @@ func (u *UUID5) DeepCopy() *UUID5 {
 		return nil
 	}
 	out := new(UUID5)
+	u.DeepCopyInto(out)
+	return out
+}
+
+// ULID represents a ulid string format
+// ref: https://github.com/ulid/spec
+//
+// swagger:strfmt ulid
+type ULID string
+
+// MarshalText turns this instance into text
+func (u ULID) MarshalText() ([]byte, error) {
+	return []byte(string(u)), nil
+}
+
+// UnmarshalText hydrates this instance from text
+func (u *ULID) UnmarshalText(data []byte) error { // validation is performed later on
+	*u = ULID(string(data))
+	return nil
+}
+
+// Scan read a value from a database driver
+func (u *ULID) Scan(raw interface{}) error {
+	switch v := raw.(type) {
+	case []byte:
+		*u = ULID(string(v))
+	case string:
+		*u = ULID(v)
+	default:
+		return fmt.Errorf("cannot sql.Scan() strfmt.ULID from: %#v", v)
+	}
+
+	return nil
+}
+
+// Value converts a value to a database driver value
+func (u ULID) Value() (driver.Value, error) {
+	return driver.Value(string(u)), nil
+}
+
+func (u ULID) String() string {
+	return string(u)
+}
+
+// MarshalJSON returns the ULID as JSON
+func (u ULID) MarshalJSON() ([]byte, error) {
+	return json.Marshal(string(u))
+}
+
+// UnmarshalJSON sets the ULID from JSON
+func (u *ULID) UnmarshalJSON(data []byte) error {
+	if string(data) == jsonNull {
+		return nil
+	}
+	var ustr string
+	if err := json.Unmarshal(data, &ustr); err != nil {
+		return err
+	}
+	*u = ULID(ustr)
+	return nil
+}
+
+// MarshalBSON document from this value
+func (u ULID) MarshalBSON() ([]byte, error) {
+	return bson.Marshal(bson.M{"data": u.String()})
+}
+
+// UnmarshalBSON document into this value
+func (u *ULID) UnmarshalBSON(data []byte) error {
+	var m bson.M
+	if err := bson.Unmarshal(data, &m); err != nil {
+		return err
+	}
+
+	if ud, ok := m["data"].(string); ok {
+		*u = ULID(ud)
+		return nil
+	}
+	return errors.New("couldn't unmarshal bson bytes as ULID")
+}
+
+// DeepCopyInto copies the receiver and writes its value into out.
+func (u *ULID) DeepCopyInto(out *ULID) {
+	*out = *u
+}
+
+// DeepCopy copies the receiver into a new ULID.
+func (u *ULID) DeepCopy() *ULID {
+	if u == nil {
+		return nil
+	}
+	out := new(ULID)
 	u.DeepCopyInto(out)
 	return out
 }

@@ -37,6 +37,7 @@ It also provides convenient extensions to go-openapi users.
   - rgbcolor (e.g. "rgb(100,100,100)")
   - ssn
   - uuid, uuid3, uuid4, uuid5
+  - ulid
   - cidr (e.g. "192.0.2.1/24", "2001:db8:a0b:12f0::1/32")
 
 > NOTE: as the name stands for, this package is intended to support string formatting only.
@@ -84,3 +85,4 @@ List of defined types:
 - UUID3
 - UUID4
 - UUID5
+- [ULID](https://github.com/ulid/spec)
