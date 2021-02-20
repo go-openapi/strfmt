@@ -151,6 +151,7 @@ type testStruct struct {
 	Rgbcolor   RGBColor   `json:"rgbcolor,omitempty"`
 	B64        Base64     `json:"b64,omitempty"`
 	Pw         Password   `json:"pw,omitempty"`
+	ULID       ULID       `json:"ulid,omitempty"`
 }
 
 func TestDecodeHook(t *testing.T) {
@@ -179,11 +180,13 @@ func TestDecodeHook(t *testing.T) {
 		"ssn":        "111-11-1111",
 		"creditcard": "4111-1111-1111-1111",
 		"b64":        "ZWxpemFiZXRocG9zZXk=",
+		"ulid":       "7ZZZZZZZZZZZZZZZZZZZZZZZZZ",
 	}
 
 	date, _ := time.Parse(RFC3339FullDate, "2014-12-15")
 	dur, _ := ParseDuration("5s")
 	dt, _ := ParseDateTime("2012-03-02T15:06:05.999999999Z")
+	ulid, _ := ParseULID("7ZZZZZZZZZZZZZZZZZZZZZZZZZ")
 
 	exp := &testStruct{
 		D:          Date(date),
@@ -209,6 +212,7 @@ func TestDecodeHook(t *testing.T) {
 		Rgbcolor:   RGBColor("rgb(255,255,255)"),
 		B64:        Base64("ZWxpemFiZXRocG9zZXk="),
 		Pw:         Password("super secret stuff here"),
+		ULID:       ulid,
 	}
 
 	test := new(testStruct)
@@ -256,6 +260,45 @@ func TestDecodeDateTimeHook(t *testing.T) {
 			assert.Nil(t, err)
 			input := make(map[string]interface{})
 			input["datetime"] = tc.Input
+			err = d.Decode(input)
+			assert.Error(t, err, "error expected got none")
+		})
+	}
+}
+
+func TestDecode_ULID_Hook_Negative(t *testing.T) {
+	t.Parallel()
+	testCases := []struct {
+		Name  string
+		Input string
+	}{
+		{
+			"empty string for ulid",
+			"",
+		},
+		{
+			"invalid non empty ulid",
+			"8000000000YYYYYYYYYYYYYYYY",
+		},
+	}
+	registry := NewFormats()
+	type layout struct {
+		ULID *ULID `json:"ulid,omitempty"`
+	}
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.Name, func(t *testing.T) {
+			t.Parallel()
+			test := new(layout)
+			cfg := &mapstructure.DecoderConfig{
+				DecodeHook:       registry.MapStructureHookFunc(),
+				WeaklyTypedInput: false,
+				Result:           test,
+			}
+			d, err := mapstructure.NewDecoder(cfg)
+			assert.NoError(t, err)
+			input := make(map[string]interface{})
+			input["ulid"] = tc.Input
 			err = d.Decode(input)
 			assert.Error(t, err, "error expected got none")
 		})
