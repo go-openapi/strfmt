@@ -195,7 +195,7 @@ func TestFormatULID_Scan(t *testing.T) {
 		assert.NoError(t, err)
 
 		ULIDScanOverrideFunc = func(raw interface{}) (ULID, error) {
-			var u ULID = NewULIDZero()
+			u := NewULIDZero()
 			switch x := raw.(type) {
 			case [16]byte:
 				return u, u.ULID.UnmarshalBinary(x[:])
