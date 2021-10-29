@@ -345,6 +345,8 @@ type testableFormat interface {
 }
 
 func testStringFormat(t *testing.T, what testableFormat, format, with string, validSamples, invalidSamples []string) {
+	t.Helper()
+
 	// text encoding interface
 	b := []byte(with)
 	err := what.UnmarshalText(b)
@@ -422,6 +424,8 @@ func testStringFormat(t *testing.T, what testableFormat, format, with string, va
 }
 
 func resetValue(t *testing.T, format string, what encoding.TextUnmarshaler) {
+	t.Helper()
+
 	err := what.UnmarshalText([]byte("reset value"))
 	assert.NoError(t, err)
 	val := reflect.Indirect(reflect.ValueOf(what))
@@ -430,6 +434,8 @@ func resetValue(t *testing.T, format string, what encoding.TextUnmarshaler) {
 }
 
 func testValid(t *testing.T, name, value string) {
+	t.Helper()
+
 	ok := Default.Validates(name, value)
 	if !ok {
 		t.Errorf("expected %q of type %s to be valid", value, name)
@@ -437,6 +443,8 @@ func testValid(t *testing.T, name, value string) {
 }
 
 func testInvalid(t *testing.T, name, value string) {
+	t.Helper()
+
 	ok := Default.Validates(name, value)
 	if ok {
 		t.Errorf("expected %q of type %s to be invalid", value, name)

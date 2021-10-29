@@ -75,6 +75,8 @@ func TestDuration(t *testing.T) {
 }
 
 func testDurationParser(t *testing.T, toParse string, expected time.Duration) {
+	t.Helper()
+
 	r, e := ParseDuration(toParse)
 	assert.NoError(t, e)
 	assert.Equal(t, expected, r)
@@ -91,6 +93,8 @@ func TestIsDuration_Failed(t *testing.T) {
 }
 
 func testDurationSQLScanner(t *testing.T, dur time.Duration) {
+	t.Helper()
+
 	values := []interface{}{int64(dur), float64(dur)}
 	for _, value := range values {
 		var result Duration
