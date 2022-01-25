@@ -265,7 +265,9 @@ func (b Base64) Value() (driver.Value, error) {
 }
 
 func (b Base64) String() string {
-	return base64.StdEncoding.EncodeToString([]byte(b))
+	// use url safe encode for client request.
+	// fix after https://github.com/go-openapi/strfmt/issues/87 fixed.
+	return base64.URLEncoding.EncodeToString([]byte(b))
 }
 
 // MarshalJSON returns the Base64 as JSON
