@@ -227,6 +227,11 @@ func (t DateTime) MarshalBSONValue() (bsontype.Type, []byte, error) {
 // assumed to be valid. UnmarshalBSONValue must copy the BSON value bytes if it
 // wishes to retain the data after returning.
 func (t *DateTime) UnmarshalBSONValue(tpe bsontype.Type, data []byte) error {
+	if len(data) == 0 {
+		*t = DateTime{}
+		return nil
+	}
+
 	i64 := int64(binary.LittleEndian.Uint64(data))
 	// TODO: Use bsonprim.DateTime.Time() method
 	*t = DateTime(time.Unix(i64/1000, i64%1000*1000000))
