@@ -299,6 +299,7 @@ func TestFormatULID_NewULID_and_Equal(t *testing.T) {
 	ulid2, err := NewULID()
 	assert.NoError(t, err)
 
+	//nolint:gocritic
 	assert.True(t, ulid1.Equal(ulid1), "ULID instances should be equal")
 	assert.False(t, ulid1.Equal(ulid2), "ULID instances should not be equal")
 
