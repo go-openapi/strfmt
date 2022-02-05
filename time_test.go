@@ -320,6 +320,7 @@ func TestDateTime_Equal(t *testing.T) {
 	dt1 := DateTime(time.Now())
 	dt2 := DateTime(time.Time(dt1).Add(time.Second))
 
+	//nolint:gocritic
 	assert.True(t, dt1.Equal(dt1), "DateTime instances should be equal")
 	assert.False(t, dt1.Equal(dt2), "DateTime instances should not be equal")
 }
