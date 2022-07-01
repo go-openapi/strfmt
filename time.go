@@ -86,6 +86,9 @@ var (
 	// NormalizeTimeForMarshal provides a normalization function on time befeore marshalling (e.g. time.UTC).
 	// By default, the time value is not changed.
 	NormalizeTimeForMarshal = func(t time.Time) time.Time { return t }
+
+	// DefaultTimeLocation provides a location for a time when the time zone is not encoded in the string (ex: ISO8601 Local variants).
+	DefaultTimeLocation = time.UTC
 )
 
 // ParseDateTime parses a string that represents an ISO8601 time or a unix epoch
@@ -95,7 +98,7 @@ func ParseDateTime(data string) (DateTime, error) {
 	}
 	var lastError error
 	for _, layout := range DateTimeFormats {
-		dd, err := time.Parse(layout, data)
+		dd, err := time.ParseInLocation(layout, data, DefaultTimeLocation)
 		if err != nil {
 			lastError = err
 			continue
