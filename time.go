@@ -64,6 +64,8 @@ const (
 	RFC3339MicroNoColon = "2006-01-02T15:04:05.000000Z0700"
 	// ISO8601LocalTime represents a ISO8601 format to ISO8601 in local time (no timezone)
 	ISO8601LocalTime = "2006-01-02T15:04:05"
+	// ISO8601PlusTimezone represents a ISO8601 format to ISO8601 with timezone
+	ISO8601PlusTimezone = "2006-01-02T15:04:05+0100"
 	// ISO8601TimeWithReducedPrecision represents a ISO8601 format with reduced precision (dropped secs)
 	ISO8601TimeWithReducedPrecision = "2006-01-02T15:04Z"
 	// ISO8601TimeWithReducedPrecisionLocaltime represents a ISO8601 format with reduced precision and no timezone (dropped seconds + no timezone)
@@ -78,7 +80,7 @@ var (
 	rxDateTime = regexp.MustCompile(DateTimePattern)
 
 	// DateTimeFormats is the collection of formats used by ParseDateTime()
-	DateTimeFormats = []string{RFC3339Micro, RFC3339MicroNoColon, RFC3339Millis, RFC3339MillisNoColon, time.RFC3339, time.RFC3339Nano, ISO8601LocalTime, ISO8601TimeWithReducedPrecision, ISO8601TimeWithReducedPrecisionLocaltime, ISO8601TimeUniversalSortableDateTimePattern}
+	DateTimeFormats = []string{RFC3339Micro, RFC3339MicroNoColon, RFC3339Millis, RFC3339MillisNoColon, time.RFC3339, time.RFC3339Nano, ISO8601LocalTime, ISO8601PlusTimezone, ISO8601TimeWithReducedPrecision, ISO8601TimeWithReducedPrecisionLocaltime, ISO8601TimeUniversalSortableDateTimePattern}
 
 	// MarshalFormat sets the time resolution format used for marshaling time (set to milliseconds)
 	MarshalFormat = RFC3339Millis
