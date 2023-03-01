@@ -123,6 +123,11 @@ func (t DateTime) String() string {
 	return NormalizeTimeForMarshal(time.Time(t)).Format(MarshalFormat)
 }
 
+// IsZero returns whether the date time is a zero value
+func (t DateTime) IsZero() bool {
+	return time.Time(t).IsZero()
+}
+
 // MarshalText implements the text marshaller interface
 func (t DateTime) MarshalText() ([]byte, error) {
 	return []byte(t.String()), nil

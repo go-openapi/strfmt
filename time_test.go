@@ -53,6 +53,16 @@ func TestNewDateTime(t *testing.T) {
 	assert.EqualValues(t, time.Unix(0, 0).UTC(), NewDateTime())
 }
 
+func TestIsZero(t *testing.T) {
+	var empty DateTime
+	assert.True(t, empty.IsZero())
+	assert.False(t, DateTime(time.Unix(100, 5)).IsZero())
+
+	// time.Unix(0,0) does not produce a true zero value struct,
+	// so this is expected to fail.
+	assert.False(t, NewDateTime().IsZero())
+}
+
 func TestParseDateTime_errorCases(t *testing.T) {
 	_, err := ParseDateTime("yada")
 	assert.Error(t, err)
