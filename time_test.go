@@ -63,6 +63,17 @@ func TestIsZero(t *testing.T) {
 	assert.False(t, NewDateTime().IsZero())
 }
 
+func TestIsUnixZero(t *testing.T) {
+	dt := NewDateTime()
+	assert.True(t, dt.IsUnixZero())
+	assert.NotEqual(t, dt.IsZero(), dt.IsUnixZero())
+	// Test configuring UnixZero
+	estLocation := time.FixedZone("EST", int((-5 * time.Hour).Seconds()))
+	estUnixZero := time.Unix(0, 0).In(estLocation)
+	UnixZero = estUnixZero
+	assert.True(t, DateTime(estUnixZero).IsUnixZero())
+}
+
 func TestParseDateTime_errorCases(t *testing.T) {
 	_, err := ParseDateTime("yada")
 	assert.Error(t, err)
