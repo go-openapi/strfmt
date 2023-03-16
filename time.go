@@ -29,6 +29,12 @@ import (
 	"go.mongodb.org/mongo-driver/bson/bsontype"
 )
 
+var (
+	// UnixZero sets the zero unix timestamp we want to compare against.
+	// Unix 0 for an EST timezone is not equivalent to a UTC timezone.
+	UnixZero = time.Unix(0, 0).UTC()
+)
+
 func init() {
 	dt := DateTime{}
 	Default.Add("datetime", &dt, IsDateTime)
@@ -121,6 +127,16 @@ func NewDateTime() DateTime {
 // String converts this time to a string
 func (t DateTime) String() string {
 	return NormalizeTimeForMarshal(time.Time(t)).Format(MarshalFormat)
+}
+
+// IsZero returns whether the date time is a zero value
+func (t DateTime) IsZero() bool {
+	return time.Time(t).IsZero()
+}
+
+// IsUnixZerom returns whether the date time is equivalent to time.Unix(0, 0).UTC().
+func (t DateTime) IsUnixZero() bool {
+	return time.Time(t) == UnixZero
 }
 
 // MarshalText implements the text marshaller interface
