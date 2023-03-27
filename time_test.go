@@ -56,11 +56,15 @@ func TestNewDateTime(t *testing.T) {
 func TestIsZero(t *testing.T) {
 	var empty DateTime
 	assert.True(t, empty.IsZero())
-	assert.False(t, DateTime(time.Unix(100, 5)).IsZero())
+	var nilDt *DateTime
+	assert.True(t, nilDt.IsZero())
+	small := DateTime(time.Unix(100, 5))
+	assert.False(t, small.IsZero())
 
 	// time.Unix(0,0) does not produce a true zero value struct,
 	// so this is expected to fail.
-	assert.False(t, NewDateTime().IsZero())
+	dt := NewDateTime()
+	assert.False(t, dt.IsZero())
 }
 
 func TestIsUnixZero(t *testing.T) {
@@ -71,7 +75,9 @@ func TestIsUnixZero(t *testing.T) {
 	estLocation := time.FixedZone("EST", int((-5 * time.Hour).Seconds()))
 	estUnixZero := time.Unix(0, 0).In(estLocation)
 	UnixZero = estUnixZero
-	assert.True(t, DateTime(estUnixZero).IsUnixZero())
+	t.Cleanup(func() { UnixZero = time.Unix(0, 0).UTC() })
+	dtz := DateTime(estUnixZero)
+	assert.True(t, dtz.IsUnixZero())
 }
 
 func TestParseDateTime_errorCases(t *testing.T) {
