@@ -240,7 +240,7 @@ func TestDecodeDateTimeHook(t *testing.T) {
 		},
 		{
 			"invalid non empty datetime",
-			"2019-01-01",
+			"2019-01-01abc",
 		},
 	}
 	registry := NewFormats()
