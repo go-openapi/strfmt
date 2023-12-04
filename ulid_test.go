@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -24,29 +25,29 @@ func TestFormatULID_Text(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		t.Parallel()
 		ulid, err := ParseULID(testUlid)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		res, err := ulid.MarshalText()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, testUlid, string(res))
 
 		ulid2, _ := ParseULID(testUlidAlt)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		what := []byte(testUlid)
 		err = ulid2.UnmarshalText(what)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, testUlid, ulid2.String())
 	})
 	t.Run("negative", func(t *testing.T) {
 		t.Parallel()
 		ulid, err := ParseULID(testUlid)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		what := []byte("00000000-0000-0000-0000-000000000000")
 
 		err = ulid.UnmarshalText(what)
-		assert.Error(t, err)
+		require.Error(t, err)
 	})
 }
 
@@ -57,35 +58,35 @@ func TestFormatULID_BSON(t *testing.T) {
 		ulid, _ := ParseULID(testUlid)
 
 		bsonData, err := bson.Marshal(&ulid)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		var ulidUnmarshaled ULID
 		err = bson.Unmarshal(bsonData, &ulidUnmarshaled)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, ulid, ulidUnmarshaled)
 
 		// Check value marshaling explicitly
 		m := bson.M{"data": ulid}
 		bsonData, err = bson.Marshal(&m)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		var mUnmarshaled bson.M
 		err = bson.Unmarshal(bsonData, &mUnmarshaled)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		data, ok := m["data"].(ULID)
-		assert.Equal(t, true, ok)
+		assert.True(t, ok)
 		assert.Equal(t, ulid, data)
 	})
 	t.Run("negative", func(t *testing.T) {
 		t.Parallel()
 		uuid := UUID("00000000-0000-0000-0000-000000000000")
 		bsonData, err := bson.Marshal(&uuid)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		var ulidUnmarshaled ULID
 		err = bson.Unmarshal(bsonData, &ulidUnmarshaled)
-		assert.Error(t, err)
+		require.Error(t, err)
 	})
 }
 
@@ -94,36 +95,36 @@ func TestFormatULID_JSON(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		t.Parallel()
 		ulid, err := ParseULID(testUlid)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		whatStr := fmt.Sprintf(`"%s"`, testUlidAlt)
 		what := []byte(whatStr)
 		err = ulid.UnmarshalJSON(what)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, testUlidAlt, ulid.String())
 
 		data, err := ulid.MarshalJSON()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, whatStr, string(data))
 	})
 	t.Run("null", func(t *testing.T) {
 		t.Parallel()
 		ulid, err := ParseULID(testUlid)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		err = ulid.UnmarshalJSON([]byte("null"))
-		assert.Nil(t, err)
+		require.NoError(t, err)
 	})
 	t.Run("negative", func(t *testing.T) {
 		t.Parallel()
 		// Check UnmarshalJSON failure with no lexed items
 		ulid := NewULIDZero()
 		err := ulid.UnmarshalJSON([]byte("zorg emperor"))
-		assert.Error(t, err)
+		require.Error(t, err)
 
 		// Check lexer failure
 		err = ulid.UnmarshalJSON([]byte(`"zorg emperor"`))
-		assert.Error(t, err)
+		require.Error(t, err)
 	})
 }
 
@@ -137,15 +138,15 @@ func TestFormatULID_Scan(t *testing.T) {
 		srcUlid := testUlidAlt
 
 		ulid, err := ParseULID(testUlid)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		err = ulid.Scan(srcUlid)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, srcUlid, ulid.String())
 
 		ulid, _ = ParseULID(testUlid)
 		err = ulid.Scan([]byte(srcUlid))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, srcUlid, ulid.String())
 	})
 	t.Run("db.Scan_Failed", func(t *testing.T) {
@@ -155,21 +156,21 @@ func TestFormatULID_Scan(t *testing.T) {
 
 		ulid, err := ParseULID(testUlid)
 		zero := NewULIDZero()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		err = ulid.Scan(nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, zero, ulid)
 
 		err = ulid.Scan("")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, zero, ulid)
 
 		err = ulid.Scan(int64(0))
-		assert.Error(t, err)
+		require.Error(t, err)
 
 		err = ulid.Scan(float64(0))
-		assert.Error(t, err)
+		require.Error(t, err)
 	})
 	t.Run("db.Value", func(t *testing.T) {
 		t.Parallel()
@@ -177,10 +178,10 @@ func TestFormatULID_Scan(t *testing.T) {
 		defer testUlidOverrideValMtx.Unlock()
 
 		ulid, err := ParseULID(testUlid)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		val, err := ulid.Value()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.EqualValues(t, testUlid, val)
 	})
@@ -190,9 +191,9 @@ func TestFormatULID_Scan(t *testing.T) {
 		defer testUlidOverrideMtx.Unlock()
 
 		ulid, err := ParseULID(testUlid)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		ulid2, err := ParseULID(testUlidAlt)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ULIDScanOverrideFunc = func(raw interface{}) (ULID, error) {
 			u := NewULIDZero()
@@ -209,19 +210,19 @@ func TestFormatULID_Scan(t *testing.T) {
 		bytes := [16]byte(ulid.ULID)
 
 		err = ulid2.Scan(bytes)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, ulid2, ulid)
 		assert.Equal(t, ulid2.String(), ulid.String())
 
 		// check other default cases became unreachable
 		err = ulid2.Scan(testUlid)
-		assert.Error(t, err)
+		require.Error(t, err)
 
 		// return default Scan method
 		ULIDScanOverrideFunc = ULIDScanDefaultFunc
 		err = ulid2.Scan(testUlid)
-		assert.NoError(t, err)
-		assert.Equal(t, ulid2.String(), testUlid)
+		require.NoError(t, err)
+		assert.Equal(t, testUlid, ulid2.String())
 	})
 	t.Run("override.Value", func(t *testing.T) {
 		t.Parallel()
@@ -229,9 +230,9 @@ func TestFormatULID_Scan(t *testing.T) {
 		defer testUlidOverrideValMtx.Unlock()
 
 		ulid, err := ParseULID(testUlid)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		ulid2, err := ParseULID(testUlid)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ULIDValueOverrideFunc = func(u ULID) (driver.Value, error) {
 			bytes := [16]byte(u.ULID)
@@ -240,7 +241,7 @@ func TestFormatULID_Scan(t *testing.T) {
 
 		exp := [16]byte(ulid2.ULID)
 		val, err := ulid.Value()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.EqualValues(t, exp, val)
 
@@ -248,7 +249,7 @@ func TestFormatULID_Scan(t *testing.T) {
 		ULIDValueOverrideFunc = ULIDValueDefaultFunc
 
 		val, err = ulid.Value()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.EqualValues(t, testUlid, val)
 	})
@@ -256,7 +257,7 @@ func TestFormatULID_Scan(t *testing.T) {
 
 func TestFormatULID_DeepCopy(t *testing.T) {
 	ulid, err := ParseULID(testUlid)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	in := &ulid
 
 	out := new(ULID)
@@ -273,19 +274,19 @@ func TestFormatULID_DeepCopy(t *testing.T) {
 
 func TestFormatULID_GobEncoding(t *testing.T) {
 	ulid, err := ParseULID(testUlid)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	b := bytes.Buffer{}
 	enc := gob.NewEncoder(&b)
 	err = enc.Encode(ulid)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, b.Bytes())
 
 	var result ULID
 
 	dec := gob.NewDecoder(&b)
 	err = dec.Decode(&result)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, ulid, result)
 	assert.Equal(t, ulid.String(), result.String())
 }
@@ -294,10 +295,10 @@ func TestFormatULID_NewULID_and_Equal(t *testing.T) {
 	t.Parallel()
 
 	ulid1, err := NewULID()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ulid2, err := NewULID()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	//nolint:gocritic
 	assert.True(t, ulid1.Equal(ulid1), "ULID instances should be equal")

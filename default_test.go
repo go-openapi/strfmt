@@ -27,6 +27,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -181,7 +182,7 @@ func TestFormatUUID3(t *testing.T) {
 	// special case for zero UUID
 	var uuidZero UUID3
 	err := uuidZero.UnmarshalJSON([]byte(jsonNull))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t, UUID3(""), uuidZero)
 }
 
@@ -195,7 +196,7 @@ func TestFormatUUID4(t *testing.T) {
 	// special case for zero UUID
 	var uuidZero UUID4
 	err := uuidZero.UnmarshalJSON([]byte(jsonNull))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t, UUID4(""), uuidZero)
 }
 
@@ -209,7 +210,7 @@ func TestFormatUUID5(t *testing.T) {
 	// special case for zero UUID
 	var uuidZero UUID5
 	err := uuidZero.UnmarshalJSON([]byte(jsonNull))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t, UUID5(""), uuidZero)
 }
 
@@ -223,7 +224,7 @@ func TestFormatUUID(t *testing.T) {
 	// special case for zero UUID
 	var uuidZero UUID
 	err := uuidZero.UnmarshalJSON([]byte(jsonNull))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t, UUID(""), uuidZero)
 }
 
@@ -283,28 +284,28 @@ func TestFormatBase64(t *testing.T) {
 
 	var subj Base64
 	err := subj.UnmarshalText([]byte(str))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t, expected, subj)
 
 	b, err = subj.MarshalText()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []byte(str), b)
 
 	var subj2 Base64
 	err = subj2.UnmarshalJSON(bj)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t, expected, subj2)
 
 	b, err = subj2.MarshalJSON()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, bj, b)
 
 	bsonData, err := bson.Marshal(subj2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	var b64Copy Base64
 	err = bson.Unmarshal(bsonData, &b64Copy)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, subj2, b64Copy)
 
 	testValid(t, "byte", str)
@@ -312,7 +313,7 @@ func TestFormatBase64(t *testing.T) {
 
 	// Valuer interface
 	sqlvalue, err := subj2.Value()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	sqlvalueAsString, ok := sqlvalue.(string)
 	if assert.Truef(t, ok, "[%s]Value: expected driver value to be a string", "byte") {
 		assert.EqualValuesf(t, str, sqlvalueAsString, "[%s]Value: expected %v and %v to be equal", "byte", sqlvalue, str)
@@ -320,16 +321,16 @@ func TestFormatBase64(t *testing.T) {
 	// Scanner interface
 	var subj3 Base64
 	err = subj3.Scan([]byte(str))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t, str, subj3.String())
 
 	var subj4 Base64
 	err = subj4.Scan(str)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t, str, subj4.String())
 
 	err = subj4.Scan(123)
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 type testableFormat interface {
@@ -350,14 +351,14 @@ func testStringFormat(t *testing.T, what testableFormat, format, with string, va
 	// text encoding interface
 	b := []byte(with)
 	err := what.UnmarshalText(b)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	val := reflect.Indirect(reflect.ValueOf(what))
 	strVal := val.String()
 	assert.Equalf(t, with, strVal, "[%s]UnmarshalText: expected %v and %v to be value equal", format, strVal, with)
 
 	b, err = what.MarshalText()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equalf(t, []byte(with), b, "[%s]MarshalText: expected %v and %v to be value equal as []byte", format, string(b), with)
 
 	// Stringer
@@ -367,23 +368,23 @@ func testStringFormat(t *testing.T, what testableFormat, format, with string, va
 	// JSON encoding interface
 	bj := []byte("\"" + with + "\"")
 	err = what.UnmarshalJSON(bj)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	val = reflect.Indirect(reflect.ValueOf(what))
 	strVal = val.String()
 	assert.EqualValuesf(t, with, strVal, "[%s]UnmarshalJSON: expected %v and %v to be value equal", format, strVal, with)
 
 	b, err = what.MarshalJSON()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equalf(t, bj, b, "[%s]MarshalJSON: expected %v and %v to be value equal as []byte", format, string(b), with)
 
 	// bson encoding interface
 	bsonData, err := bson.Marshal(what)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	resetValue(t, format, what)
 
 	err = bson.Unmarshal(bsonData, what)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	val = reflect.Indirect(reflect.ValueOf(what))
 	strVal = val.String()
 	assert.EqualValuesf(t, with, strVal, "[%s]bson.Unmarshal: expected %v and %v to be equal (reset value) ", format, what, with)
@@ -391,23 +392,23 @@ func testStringFormat(t *testing.T, what testableFormat, format, with string, va
 	// Scanner interface
 	resetValue(t, format, what)
 	err = what.Scan(with)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	val = reflect.Indirect(reflect.ValueOf(what))
 	strVal = val.String()
 	assert.EqualValuesf(t, with, strVal, "[%s]Scan: expected %v and %v to be value equal", format, strVal, with)
 
 	err = what.Scan([]byte(with))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	val = reflect.Indirect(reflect.ValueOf(what))
 	strVal = val.String()
 	assert.EqualValuesf(t, with, strVal, "[%s]Scan: expected %v and %v to be value equal", format, strVal, with)
 
 	err = what.Scan(123)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// Valuer interface
 	sqlvalue, err := what.Value()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	sqlvalueAsString, ok := sqlvalue.(string)
 	if assert.Truef(t, ok, "[%s]Value: expected driver value to be a string", format) {
 		assert.EqualValuesf(t, with, sqlvalueAsString, "[%s]Value: expected %v and %v to be equal", format, sqlvalue, with)
@@ -427,7 +428,7 @@ func resetValue(t *testing.T, format string, what encoding.TextUnmarshaler) {
 	t.Helper()
 
 	err := what.UnmarshalText([]byte("reset value"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	val := reflect.Indirect(reflect.ValueOf(what))
 	strVal := val.String()
 	assert.Equalf(t, "reset value", strVal, "[%s]UnmarshalText: expected %v and %v to be equal (reset value) ", format, strVal, "reset value")

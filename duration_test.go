@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -26,51 +27,51 @@ func TestDuration(t *testing.T) {
 	pp := Duration(0)
 
 	err := pp.UnmarshalText([]byte("0ms"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = pp.UnmarshalText([]byte("yada"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	orig := "2ms"
 	b := []byte(orig)
 	bj := []byte("\"" + orig + "\"")
 
 	err = pp.UnmarshalText(b)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = pp.UnmarshalText([]byte("three week"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	err = pp.UnmarshalText([]byte("9999999999999999999999999999999999999999999999999999999 weeks"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	txt, err := pp.MarshalText()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, orig, string(txt))
 
 	err = pp.UnmarshalJSON(bj)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t, orig, pp.String())
 
 	err = pp.UnmarshalJSON([]byte("yada"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	err = pp.UnmarshalJSON([]byte(`"12 parsecs"`))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	err = pp.UnmarshalJSON([]byte(`"12 y"`))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	b, err = pp.MarshalJSON()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, bj, b)
 
 	dur := Duration(42)
 	bsonData, err := bson.Marshal(&dur)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	var durCopy Duration
 	err = bson.Unmarshal(bsonData, &durCopy)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, dur, durCopy)
 }
 
@@ -78,13 +79,13 @@ func testDurationParser(t *testing.T, toParse string, expected time.Duration) {
 	t.Helper()
 
 	r, e := ParseDuration(toParse)
-	assert.NoError(t, e)
+	require.NoError(t, e)
 	assert.Equal(t, expected, r)
 }
 
 func TestDurationParser_Failed(t *testing.T) {
 	_, e := ParseDuration("45 wekk")
-	assert.Error(t, e)
+	require.Error(t, e)
 }
 
 func TestIsDuration_Failed(t *testing.T) {
@@ -99,12 +100,12 @@ func testDurationSQLScanner(t *testing.T, dur time.Duration) {
 	for _, value := range values {
 		var result Duration
 		err := result.Scan(value)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, dur, time.Duration(result))
 
 		// And the other way around
 		resv, erv := result.Value()
-		assert.NoError(t, erv)
+		require.NoError(t, erv)
 		assert.EqualValues(t, value, resv)
 
 	}
@@ -113,11 +114,11 @@ func testDurationSQLScanner(t *testing.T, dur time.Duration) {
 func TestDurationScanner_Nil(t *testing.T) {
 	var result Duration
 	err := result.Scan(nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t, 0, time.Duration(result))
 
 	err = result.Scan("1 ms")
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestDurationParser(t *testing.T) {

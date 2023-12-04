@@ -21,6 +21,7 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type testFormat string
@@ -223,9 +224,9 @@ func TestDecodeHook(t *testing.T) {
 		Result:           test,
 	}
 	d, err := mapstructure.NewDecoder(cfg)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	err = d.Decode(m)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, exp, test)
 }
 
@@ -257,11 +258,11 @@ func TestDecodeDateTimeHook(t *testing.T) {
 				Result:           test,
 			}
 			d, err := mapstructure.NewDecoder(cfg)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 			input := make(map[string]interface{})
 			input["datetime"] = tc.Input
 			err = d.Decode(input)
-			assert.Error(t, err, "error expected got none")
+			require.Error(t, err, "error expected got none")
 		})
 	}
 }
@@ -296,11 +297,11 @@ func TestDecode_ULID_Hook_Negative(t *testing.T) {
 				Result:           test,
 			}
 			d, err := mapstructure.NewDecoder(cfg)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			input := make(map[string]interface{})
 			input["ulid"] = tc.Input
 			err = d.Decode(input)
-			assert.Error(t, err, "error expected got none")
+			require.Error(t, err, "error expected got none")
 		})
 	}
 }
