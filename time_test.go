@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -83,7 +84,7 @@ func TestIsUnixZero(t *testing.T) {
 
 func TestParseDateTime_errorCases(t *testing.T) {
 	_, err := ParseDateTime("yada")
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 // TestParseDateTime tests the full cycle:
@@ -93,11 +94,11 @@ func TestParseDateTime_fullCycle(t *testing.T) {
 		t.Logf("Case #%d", caseNum)
 
 		parsed, err := ParseDateTime(example.str)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, example.time, parsed)
 
 		mt, err := parsed.MarshalText()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, []byte(example.str), mt)
 
 		if example.str != "" {
@@ -109,12 +110,12 @@ func TestParseDateTime_fullCycle(t *testing.T) {
 
 		pp := NewDateTime()
 		err = pp.UnmarshalText(mt)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, example.time, pp)
 
 		pp = NewDateTime()
 		err = pp.Scan(mt)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, DateTime(example.time), pp)
 	}
 }
@@ -145,9 +146,9 @@ func TestDateTime_IsDateTime_errorCases(t *testing.T) {
 func TestDateTime_UnmarshalText_errorCases(t *testing.T) {
 	pp := NewDateTime()
 	err := pp.UnmarshalText([]byte("yada"))
-	assert.Error(t, err)
+	require.Error(t, err)
 	err = pp.UnmarshalJSON([]byte("yada"))
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestDateTime_UnmarshalText(t *testing.T) {
@@ -155,12 +156,12 @@ func TestDateTime_UnmarshalText(t *testing.T) {
 		t.Logf("Case #%d", caseNum)
 		pp := NewDateTime()
 		err := pp.UnmarshalText(example.in)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, example.time, pp)
 
 		// Other way around
 		val, erv := pp.Value()
-		assert.NoError(t, erv)
+		require.NoError(t, erv)
 		assert.EqualValues(t, example.str, val)
 
 	}
@@ -170,22 +171,22 @@ func TestDateTime_UnmarshalJSON(t *testing.T) {
 		t.Logf("Case #%d", caseNum)
 		pp := NewDateTime()
 		err := pp.UnmarshalJSON(esc(example.in))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, example.time, pp)
 	}
 
 	// Check UnmarshalJSON failure with no lexed items
 	pp := NewDateTime()
 	err := pp.UnmarshalJSON([]byte("zorg emperor"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// Check lexer failure
 	err = pp.UnmarshalJSON([]byte(`"zorg emperor"`))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// Check null case
 	err = pp.UnmarshalJSON([]byte("null"))
-	assert.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func esc(v []byte) []byte {
@@ -201,7 +202,7 @@ func TestDateTime_MarshalText(t *testing.T) {
 		t.Logf("Case #%d", caseNum)
 		dt := DateTime(example.time)
 		mt, err := dt.MarshalText()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, []byte(example.str), mt)
 	}
 }
@@ -210,7 +211,7 @@ func TestDateTime_MarshalJSON(t *testing.T) {
 		t.Logf("Case #%d", caseNum)
 		dt := DateTime(example.time)
 		bb, err := dt.MarshalJSON()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, esc([]byte(example.str)), bb)
 	}
 }
@@ -227,7 +228,7 @@ func TestDateTime_MarshalJSON_Override(t *testing.T) {
 		t.Logf("Case #%d", caseNum)
 		dt := DateTime(example.time.UTC())
 		bb, err := dt.MarshalJSON()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.EqualValues(t, esc([]byte(example.utcStr)), bb)
 	}
 }
@@ -238,17 +239,17 @@ func TestDateTime_Scan(t *testing.T) {
 
 		pp := NewDateTime()
 		err := pp.Scan(example.in)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, DateTime(example.time), pp)
 
 		pp = NewDateTime()
 		err = pp.Scan(string(example.in))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, DateTime(example.time), pp)
 
 		pp = NewDateTime()
 		err = pp.Scan(example.time)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, DateTime(example.time), pp)
 	}
 }
@@ -258,20 +259,20 @@ func TestDateTime_Scan_Failed(t *testing.T) {
 	zero := NewDateTime()
 
 	err := pp.Scan(nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// Zero values differ...
 	// assert.Equal(t, zero, pp)
 	assert.Equal(t, DateTime{}, pp)
 
 	err = pp.Scan("")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, zero, pp)
 
 	err = pp.Scan(int64(0))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	err = pp.Scan(float64(0))
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestDateTime_BSON(t *testing.T) {
@@ -280,32 +281,32 @@ func TestDateTime_BSON(t *testing.T) {
 		dt := DateTime(example.time)
 
 		bsonData, err := bson.Marshal(&dt)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		var dtCopy DateTime
 		err = bson.Unmarshal(bsonData, &dtCopy)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		// BSON DateTime type loses timezone information, so compare UTC()
 		assert.Equal(t, time.Time(dt).UTC(), time.Time(dtCopy).UTC())
 
 		// Check value marshaling explicitly
 		m := bson.M{"data": dt}
 		bsonData, err = bson.Marshal(&m)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		var mCopy bson.M
 		err = bson.Unmarshal(bsonData, &mCopy)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		data, ok := m["data"].(DateTime)
-		assert.Equal(t, true, ok)
+		assert.True(t, ok)
 		assert.Equal(t, time.Time(dt).UTC(), time.Time(data).UTC())
 	}
 }
 
 func TestDeepCopyDateTime(t *testing.T) {
 	p, err := ParseDateTime("2011-08-18T19:03:37.000000000+01:00")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	in := &p
 
 	out := new(DateTime)
@@ -326,14 +327,14 @@ func TestGobEncodingDateTime(t *testing.T) {
 	b := bytes.Buffer{}
 	enc := gob.NewEncoder(&b)
 	err := enc.Encode(DateTime(now))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, b.Bytes())
 
 	var result DateTime
 
 	dec := gob.NewDecoder(&b)
 	err = dec.Decode(&result)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, now.Year(), time.Time(result).Year())
 	assert.Equal(t, now.Month(), time.Time(result).Month())
 	assert.Equal(t, now.Day(), time.Time(result).Day())

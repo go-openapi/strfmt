@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const testUlid = string("01EYXZVGBHG26MFTG4JWR4K558")
@@ -14,7 +15,7 @@ func TestULIDValue(t *testing.T) {
 
 	value := strfmt.ULID{}
 	err := value.UnmarshalText([]byte(testUlid))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, value, ULIDValue(&value))
 
 	ulidRef := ULID(value)

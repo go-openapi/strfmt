@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -32,43 +33,43 @@ var _ driver.Valuer = Date{}
 func TestDate(t *testing.T) {
 	pp := Date{}
 	err := pp.UnmarshalText([]byte{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = pp.UnmarshalText([]byte("yada"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	orig := "2014-12-15"
 	bj := []byte("\"" + orig + "\"")
 	err = pp.UnmarshalText([]byte(orig))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	txt, err := pp.MarshalText()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, orig, string(txt))
 
 	err = pp.UnmarshalJSON(bj)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t, orig, pp.String())
 
 	err = pp.UnmarshalJSON([]byte(`"1972/01/01"`))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	b, err := pp.MarshalJSON()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, bj, b)
 
 	dateOriginal := Date(time.Date(2014, 10, 10, 0, 0, 0, 0, time.UTC))
 
 	bsonData, err := bson.Marshal(&dateOriginal)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	var dateCopy Date
 	err = bson.Unmarshal(bsonData, &dateCopy)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, dateOriginal, dateCopy)
 
 	var dateZero Date
 	err = dateZero.UnmarshalJSON([]byte(jsonNull))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, Date{}, dateZero)
 }
 
@@ -85,18 +86,18 @@ func TestDate_Scan(t *testing.T) {
 
 	dd := Date{}
 	err := dd.Scan(nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, Date{}, dd)
 
 	err = dd.Scan(19700101)
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestDate_Value(t *testing.T) {
 	ref := time.Now().Truncate(24 * time.Hour).UTC()
 	date := Date(ref)
 	dbv, err := date.Value()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t, dbv, ref.Format("2006-01-02"))
 }
 
@@ -148,14 +149,14 @@ func TestGobEncodingDate(t *testing.T) {
 	b := bytes.Buffer{}
 	enc := gob.NewEncoder(&b)
 	err := enc.Encode(Date(now))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, b.Bytes())
 
 	var result Date
 
 	dec := gob.NewDecoder(&b)
 	err = dec.Decode(&result)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, now.Year(), time.Time(result).Year())
 	assert.Equal(t, now.Month(), time.Time(result).Month())
 	assert.Equal(t, now.Day(), time.Time(result).Day())
