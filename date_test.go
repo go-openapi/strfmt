@@ -24,7 +24,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 var _ sql.Scanner = &Date{}
@@ -56,16 +55,6 @@ func TestDate(t *testing.T) {
 	b, err := pp.MarshalJSON()
 	require.NoError(t, err)
 	assert.Equal(t, bj, b)
-
-	dateOriginal := Date(time.Date(2014, 10, 10, 0, 0, 0, 0, time.UTC))
-
-	bsonData, err := bson.Marshal(&dateOriginal)
-	require.NoError(t, err)
-
-	var dateCopy Date
-	err = bson.Unmarshal(bsonData, &dateCopy)
-	require.NoError(t, err)
-	assert.Equal(t, dateOriginal, dateCopy)
 
 	var dateZero Date
 	err = dateZero.UnmarshalJSON([]byte(jsonNull))

@@ -30,7 +30,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestFormatURI(t *testing.T) {
@@ -39,10 +38,8 @@ func TestFormatURI(t *testing.T) {
 	testStringFormat(t, &uri, "uri", str, []string{}, []string{"somewhere.com"})
 }
 
-func TestFormatEmail(t *testing.T) {
-	email := Email("somebody@somewhere.com")
-	str := string("somebodyelse@somewhere.com")
-	validEmails := []string{
+func validEmails() []string {
+	return []string{
 		"blah@gmail.com",
 		"test@d.verylongtoplevel",
 		"email+tag@gmail.com",
@@ -62,17 +59,21 @@ func TestFormatEmail(t *testing.T) {
 		"john@com",
 		"api@piston.ninja",
 	}
-
-	testStringFormat(t, &email, "email", str, validEmails, []string{"somebody@somewhere@com"})
 }
 
-func TestFormatHostname(t *testing.T) {
-	hostname := Hostname("somewhere.com")
-	str := string("somewhere.com")
+func TestFormatEmail(t *testing.T) {
+	email := Email("somebody@somewhere.com")
+	str := string("somebodyelse@somewhere.com")
+
+	testStringFormat(t, &email, "email", str, validEmails(), []string{"somebody@somewhere@com"})
+}
+
+func invalidHostnames() []string {
 	veryLongStr := strings.Repeat("a", 256)
 	longStr := strings.Repeat("a", 64)
 	longAddrSegment := strings.Join([]string{"x", "y", longStr}, ".")
-	invalidHostnames := []string{
+
+	return []string{
 		"somewhere.com!",
 		"user@email.domain",
 		veryLongStr,
@@ -144,8 +145,10 @@ func TestFormatHostname(t *testing.T) {
 		"0o07.2.3.4",             // unsupported alternated octal notation
 		"localhost:81",
 	}
+}
 
-	validHostnames := []string{
+func validHostnames() []string {
+	return []string{
 		"somewhere.com",
 		"Somewhere.Com",
 		"888.com",
@@ -207,9 +210,14 @@ func TestFormatHostname(t *testing.T) {
 		"0300.0250.0340.001", // octal IP v4
 		"1.2.3.00",           // leading 0, valid octal value
 	}
+}
 
-	testStringFormat(t, &hostname, "hostname", str, []string{}, invalidHostnames)
-	testStringFormat(t, &hostname, "hostname", str, validHostnames, []string{})
+func TestFormatHostname(t *testing.T) {
+	hostname := Hostname("somewhere.com")
+	str := string("somewhere.com")
+
+	testStringFormat(t, &hostname, "hostname", str, []string{}, invalidHostnames())
+	testStringFormat(t, &hostname, "hostname", str, validHostnames(), []string{})
 }
 
 func TestFormatIPv4(t *testing.T) {
@@ -237,28 +245,39 @@ func TestFormatMAC(t *testing.T) {
 	testStringFormat(t, &mac, "mac", str, []string{}, []string{"01:02:03:04:05"})
 }
 
-func TestFormatUUID3(t *testing.T) {
-	first3 := uuid.NewMD5(uuid.NameSpaceURL, []byte("somewhere.com"))
+func validUUID3s() []string {
+	other3 := uuid.NewMD5(uuid.NameSpaceURL, []byte("somewhereelse.com"))
+
+	return []string{
+		other3.String(),
+		strings.ReplaceAll(other3.String(), "-", ""),
+	}
+}
+
+func invalidUUID3s() []string {
 	other3 := uuid.NewMD5(uuid.NameSpaceURL, []byte("somewhereelse.com"))
 	other4 := uuid.Must(uuid.NewRandom())
 	other5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
+
+	return []string{
+		"not-a-uuid",
+		other4.String(),
+		other5.String(),
+		strings.ReplaceAll(other4.String(), "-", ""),
+		strings.ReplaceAll(other5.String(), "-", ""),
+		strings.Replace(other3.String(), "-", "", 2),
+		strings.Replace(other4.String(), "-", "", 2),
+		strings.Replace(other5.String(), "-", "", 2),
+	}
+}
+
+func TestFormatUUID3(t *testing.T) {
+	first3 := uuid.NewMD5(uuid.NameSpaceURL, []byte("somewhere.com"))
 	uuid3 := UUID3(first3.String())
-	str := other3.String()
+	str := first3.String()
 	testStringFormat(t, &uuid3, "uuid3", str,
-		[]string{
-			other3.String(),
-			strings.ReplaceAll(other3.String(), "-", ""),
-		},
-		[]string{
-			"not-a-uuid",
-			other4.String(),
-			other5.String(),
-			strings.ReplaceAll(other4.String(), "-", ""),
-			strings.ReplaceAll(other5.String(), "-", ""),
-			strings.Replace(other3.String(), "-", "", 2),
-			strings.Replace(other4.String(), "-", "", 2),
-			strings.Replace(other5.String(), "-", "", 2),
-		},
+		validUUID3s(),
+		invalidUUID3s(),
 	)
 
 	// special case for zero UUID
@@ -268,28 +287,39 @@ func TestFormatUUID3(t *testing.T) {
 	assert.Equal(t, UUID3(""), uuidZero)
 }
 
-func TestFormatUUID4(t *testing.T) {
-	first4 := uuid.Must(uuid.NewRandom())
+func validUUID4s() []string {
+	other4 := uuid.Must(uuid.NewRandom())
+
+	return []string{
+		other4.String(),
+		strings.ReplaceAll(other4.String(), "-", ""),
+	}
+}
+
+func invalidUUID4s() []string {
 	other3 := uuid.NewMD5(uuid.NameSpaceURL, []byte("somewhere.com"))
 	other4 := uuid.Must(uuid.NewRandom())
 	other5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
+
+	return []string{
+		"not-a-uuid",
+		other3.String(),
+		other5.String(),
+		strings.ReplaceAll(other3.String(), "-", ""),
+		strings.ReplaceAll(other5.String(), "-", ""),
+		strings.Replace(other3.String(), "-", "", 2),
+		strings.Replace(other4.String(), "-", "", 2),
+		strings.Replace(other5.String(), "-", "", 2),
+	}
+}
+func TestFormatUUID4(t *testing.T) {
+	first4 := uuid.Must(uuid.NewRandom())
+	other4 := uuid.Must(uuid.NewRandom())
 	uuid4 := UUID4(first4.String())
 	str := other4.String()
 	testStringFormat(t, &uuid4, "uuid4", str,
-		[]string{
-			other4.String(),
-			strings.ReplaceAll(other4.String(), "-", ""),
-		},
-		[]string{
-			"not-a-uuid",
-			other3.String(),
-			other5.String(),
-			strings.ReplaceAll(other3.String(), "-", ""),
-			strings.ReplaceAll(other5.String(), "-", ""),
-			strings.Replace(other3.String(), "-", "", 2),
-			strings.Replace(other4.String(), "-", "", 2),
-			strings.Replace(other5.String(), "-", "", 2),
-		},
+		validUUID4s(),
+		invalidUUID4s(),
 	)
 
 	// special case for zero UUID
@@ -299,28 +329,40 @@ func TestFormatUUID4(t *testing.T) {
 	assert.Equal(t, UUID4(""), uuidZero)
 }
 
-func TestFormatUUID5(t *testing.T) {
-	first5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhere.com"))
+func validUUID5s() []string {
+	other5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
+
+	return []string{
+		other5.String(),
+		strings.ReplaceAll(other5.String(), "-", ""),
+	}
+}
+
+func invalidUUID5s() []string {
 	other3 := uuid.NewMD5(uuid.NameSpaceURL, []byte("somewhere.com"))
 	other4 := uuid.Must(uuid.NewRandom())
+	other5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
+
+	return []string{
+		"not-a-uuid",
+		other3.String(),
+		other4.String(),
+		strings.ReplaceAll(other3.String(), "-", ""),
+		strings.ReplaceAll(other4.String(), "-", ""),
+		strings.Replace(other3.String(), "-", "", 2),
+		strings.Replace(other4.String(), "-", "", 2),
+		strings.Replace(other5.String(), "-", "", 2),
+	}
+}
+
+func TestFormatUUID5(t *testing.T) {
+	first5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhere.com"))
 	other5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
 	uuid5 := UUID5(first5.String())
 	str := other5.String()
 	testStringFormat(t, &uuid5, "uuid5", str,
-		[]string{
-			other5.String(),
-			strings.ReplaceAll(other5.String(), "-", ""),
-		},
-		[]string{
-			"not-a-uuid",
-			other3.String(),
-			other4.String(),
-			strings.ReplaceAll(other3.String(), "-", ""),
-			strings.ReplaceAll(other4.String(), "-", ""),
-			strings.Replace(other3.String(), "-", "", 2),
-			strings.Replace(other4.String(), "-", "", 2),
-			strings.Replace(other5.String(), "-", "", 2),
-		},
+		validUUID5s(),
+		invalidUUID5s(),
 	)
 
 	// special case for zero UUID
@@ -330,8 +372,7 @@ func TestFormatUUID5(t *testing.T) {
 	assert.Equal(t, UUID5(""), uuidZero)
 }
 
-func TestFormatUUID(t *testing.T) {
-	first5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhere.com"))
+func validUUIDs() []string {
 	other3 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
 	other4 := uuid.Must(uuid.NewRandom())
 	other5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
@@ -339,26 +380,39 @@ func TestFormatUUID(t *testing.T) {
 	other7 := uuid.Must(uuid.NewV7())
 	microsoft := "0" + other4.String() + "f"
 
+	return []string{
+		other3.String(),
+		other4.String(),
+		other5.String(),
+		strings.ReplaceAll(other3.String(), "-", ""),
+		strings.ReplaceAll(other4.String(), "-", ""),
+		strings.ReplaceAll(other5.String(), "-", ""),
+		other6.String(),
+		other7.String(),
+		microsoft,
+	}
+}
+
+func invalidUUIDs() []string {
+	other3 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
+	other4 := uuid.Must(uuid.NewRandom())
+	other5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
+
+	return []string{
+		"not-a-uuid",
+		strings.Replace(other3.String(), "-", "", 2),
+		strings.Replace(other4.String(), "-", "", 2),
+		strings.Replace(other5.String(), "-", "", 2),
+	}
+}
+func TestFormatUUID(t *testing.T) {
+	first5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhere.com"))
+	other5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
 	uuid := UUID(first5.String())
 	str := other5.String()
 	testStringFormat(t, &uuid, "uuid", str,
-		[]string{
-			other3.String(),
-			other4.String(),
-			other5.String(),
-			strings.ReplaceAll(other3.String(), "-", ""),
-			strings.ReplaceAll(other4.String(), "-", ""),
-			strings.ReplaceAll(other5.String(), "-", ""),
-			other6.String(),
-			other7.String(),
-			microsoft,
-		},
-		[]string{
-			"not-a-uuid",
-			strings.Replace(other3.String(), "-", "", 2),
-			strings.Replace(other4.String(), "-", "", 2),
-			strings.Replace(other5.String(), "-", "", 2),
-		},
+		validUUIDs(),
+		invalidUUIDs(),
 	)
 
 	// special case for zero UUID
@@ -440,14 +494,6 @@ func TestFormatBase64(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, bj, b)
 
-	bsonData, err := bson.Marshal(subj2)
-	require.NoError(t, err)
-
-	var b64Copy Base64
-	err = bson.Unmarshal(bsonData, &b64Copy)
-	require.NoError(t, err)
-	assert.Equal(t, subj2, b64Copy)
-
 	testValid(t, "byte", str)
 	testInvalid(t, "byte", "ZWxpemFiZXRocG9zZXk") // missing pad char
 
@@ -478,8 +524,6 @@ type testableFormat interface {
 	encoding.TextUnmarshaler
 	json.Marshaler
 	json.Unmarshaler
-	bson.Marshaler
-	bson.Unmarshaler
 	fmt.Stringer
 	sql.Scanner
 	driver.Valuer
@@ -516,18 +560,6 @@ func testStringFormat(t *testing.T, what testableFormat, format, with string, va
 	b, err = what.MarshalJSON()
 	require.NoError(t, err)
 	assert.Equalf(t, bj, b, "[%s]MarshalJSON: expected %v and %v to be value equal as []byte", format, string(b), with)
-
-	// bson encoding interface
-	bsonData, err := bson.Marshal(what)
-	require.NoError(t, err)
-
-	resetValue(t, format, what)
-
-	err = bson.Unmarshal(bsonData, what)
-	require.NoError(t, err)
-	val = reflect.Indirect(reflect.ValueOf(what))
-	strVal = val.String()
-	assert.Equal(t, with, strVal, "[%s]bson.Unmarshal: expected %v and %v to be equal (reset value) ", format, what, with)
 
 	// Scanner interface
 	resetValue(t, format, what)
