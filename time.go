@@ -16,16 +16,11 @@ package strfmt
 
 import (
 	"database/sql/driver"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
 	"time"
-
-	"go.mongodb.org/mongo-driver/bson"
-
-	"go.mongodb.org/mongo-driver/bson/bsontype"
 )
 
 var (
@@ -221,69 +216,6 @@ func (t *DateTime) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*t = tt
-	return nil
-}
-
-// MarshalBSON renders the DateTime as a BSON document
-func (t DateTime) MarshalBSON() ([]byte, error) {
-	return bson.Marshal(bson.M{"data": t})
-}
-
-// UnmarshalBSON reads the DateTime from a BSON document
-func (t *DateTime) UnmarshalBSON(data []byte) error {
-	var obj struct {
-		Data DateTime
-	}
-
-	if err := bson.Unmarshal(data, &obj); err != nil {
-		return err
-	}
-
-	*t = obj.Data
-
-	return nil
-}
-
-const bsonDateLength = 8
-
-// MarshalBSONValue is an interface implemented by types that can marshal themselves
-// into a BSON document represented as bytes. The bytes returned must be a valid
-// BSON document if the error is nil.
-//
-// Marshals a DateTime as a bsontype.DateTime, an int64 representing
-// milliseconds since epoch.
-func (t DateTime) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	// UnixNano cannot be used directly, the result of calling UnixNano on the zero
-	// Time is undefined. That's why we use time.Nanosecond() instead.
-	tNorm := NormalizeTimeForMarshal(time.Time(t))
-	i64 := tNorm.UnixMilli()
-
-	buf := make([]byte, bsonDateLength)
-	// int64 -> uint64 conversion is safe here
-	binary.LittleEndian.PutUint64(buf, uint64(i64)) //nolint:gosec
-
-	return bson.TypeDateTime, buf, nil
-}
-
-// UnmarshalBSONValue is an interface implemented by types that can unmarshal a
-// BSON value representation of themselves. The BSON bytes and type can be
-// assumed to be valid. UnmarshalBSONValue must copy the BSON value bytes if it
-// wishes to retain the data after returning.
-func (t *DateTime) UnmarshalBSONValue(tpe bsontype.Type, data []byte) error {
-	if tpe == bson.TypeNull {
-		*t = DateTime{}
-		return nil
-	}
-
-	if len(data) != bsonDateLength {
-		return fmt.Errorf("bson date field length not exactly 8 bytes: %w", ErrFormat)
-	}
-
-	// it's ok to get negative values after conversion
-	i64 := int64(binary.LittleEndian.Uint64(data)) //nolint:gosec
-	// TODO: Use bsonprim.DateTime.Time() method
-	*t = DateTime(time.UnixMilli(i64))
-
 	return nil
 }
 

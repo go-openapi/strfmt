@@ -18,9 +18,6 @@ import (
 	"database/sql/driver"
 	"fmt"
 
-	"go.mongodb.org/mongo-driver/bson"
-
-	"go.mongodb.org/mongo-driver/bson/bsontype"
 	bsonprim "go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -110,42 +107,6 @@ func (id *ObjectId) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*id = ObjectId(obj)
-	return nil
-}
-
-// MarshalBSON renders the object id as a BSON document
-func (id ObjectId) MarshalBSON() ([]byte, error) {
-	return bson.Marshal(bson.M{"data": bsonprim.ObjectID(id)})
-}
-
-// UnmarshalBSON reads the objectId from a BSON document
-func (id *ObjectId) UnmarshalBSON(data []byte) error {
-	var obj struct {
-		Data bsonprim.ObjectID
-	}
-	if err := bson.Unmarshal(data, &obj); err != nil {
-		return err
-	}
-	*id = ObjectId(obj.Data)
-	return nil
-}
-
-// MarshalBSONValue is an interface implemented by types that can marshal themselves
-// into a BSON document represented as bytes. The bytes returned must be a valid
-// BSON document if the error is nil.
-func (id ObjectId) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	oid := bsonprim.ObjectID(id)
-	return bson.TypeObjectID, oid[:], nil
-}
-
-// UnmarshalBSONValue is an interface implemented by types that can unmarshal a
-// BSON value representation of themselves. The BSON bytes and type can be
-// assumed to be valid. UnmarshalBSONValue must copy the BSON value bytes if it
-// wishes to retain the data after returning.
-func (id *ObjectId) UnmarshalBSONValue(_ bsontype.Type, data []byte) error {
-	var oid bsonprim.ObjectID
-	copy(oid[:], data)
-	*id = ObjectId(oid)
 	return nil
 }
 

@@ -23,9 +23,13 @@ import (
 )
 
 func TestBSONObjectId_fullCycle(t *testing.T) {
+	const str = "507f1f77bcf86cd799439011"
+
 	id := NewObjectId("507f1f77bcf86cd799439011")
 	bytes, err := id.MarshalText()
 	require.NoError(t, err)
+
+	require.True(t, IsBSONObjectID(str))
 
 	var idCopy ObjectId
 
@@ -36,6 +40,8 @@ func TestBSONObjectId_fullCycle(t *testing.T) {
 	err = idCopy.UnmarshalText(bytes)
 	require.NoError(t, err)
 	assert.Equal(t, id, idCopy)
+
+	require.Equal(t, str, idCopy.String())
 
 	jsonBytes, err := id.MarshalJSON()
 	require.NoError(t, err)
@@ -50,6 +56,7 @@ func TestBSONObjectId_fullCycle(t *testing.T) {
 	err = bson.Unmarshal(bsonBytes, &idCopy)
 	require.NoError(t, err)
 	assert.Equal(t, id, idCopy)
+
 }
 
 func TestDeepCopyObjectId(t *testing.T) {

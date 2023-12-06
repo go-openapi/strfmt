@@ -10,7 +10,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 const testUlid = string("01EYXZVGBHG26MFTG4JWR4K558")
@@ -47,45 +46,6 @@ func TestFormatULID_Text(t *testing.T) {
 		what := []byte("00000000-0000-0000-0000-000000000000")
 
 		err = ulid.UnmarshalText(what)
-		require.Error(t, err)
-	})
-}
-
-func TestFormatULID_BSON(t *testing.T) {
-	t.Parallel()
-	t.Run("positive", func(t *testing.T) {
-		t.Parallel()
-		ulid, _ := ParseULID(testUlid)
-
-		bsonData, err := bson.Marshal(&ulid)
-		require.NoError(t, err)
-
-		var ulidUnmarshaled ULID
-		err = bson.Unmarshal(bsonData, &ulidUnmarshaled)
-		require.NoError(t, err)
-		assert.Equal(t, ulid, ulidUnmarshaled)
-
-		// Check value marshaling explicitly
-		m := bson.M{"data": ulid}
-		bsonData, err = bson.Marshal(&m)
-		require.NoError(t, err)
-
-		var mUnmarshaled bson.M
-		err = bson.Unmarshal(bsonData, &mUnmarshaled)
-		require.NoError(t, err)
-
-		data, ok := m["data"].(ULID)
-		assert.True(t, ok)
-		assert.Equal(t, ulid, data)
-	})
-	t.Run("negative", func(t *testing.T) {
-		t.Parallel()
-		uuid := UUID("00000000-0000-0000-0000-000000000000")
-		bsonData, err := bson.Marshal(&uuid)
-		require.NoError(t, err)
-
-		var ulidUnmarshaled ULID
-		err = bson.Unmarshal(bsonData, &ulidUnmarshaled)
 		require.Error(t, err)
 	})
 }

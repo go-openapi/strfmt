@@ -19,8 +19,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func init() {
@@ -112,28 +110,6 @@ func (d *Date) UnmarshalJSON(data []byte) error {
 	}
 	*d = Date(tt)
 	return nil
-}
-
-func (d Date) MarshalBSON() ([]byte, error) {
-	return bson.Marshal(bson.M{"data": d.String()})
-}
-
-func (d *Date) UnmarshalBSON(data []byte) error {
-	var m bson.M
-	if err := bson.Unmarshal(data, &m); err != nil {
-		return err
-	}
-
-	if data, ok := m["data"].(string); ok {
-		rd, err := time.ParseInLocation(RFC3339FullDate, data, DefaultTimeLocation)
-		if err != nil {
-			return err
-		}
-		*d = Date(rd)
-		return nil
-	}
-
-	return fmt.Errorf("couldn't unmarshal bson bytes value as Date: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.

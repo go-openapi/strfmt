@@ -18,6 +18,7 @@ import (
 	"encoding"
 	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -32,27 +33,6 @@ var Default = NewSeededFormats(nil, nil)
 // Validator represents a validator for a string format.
 type Validator func(string) bool
 
-// Format represents a string format.
-//
-// All implementations of Format provide a string representation and text
-// marshaling/unmarshaling interface to be used by encoders (e.g. encoding/json).
-type Format interface {
-	String() string
-	encoding.TextMarshaler
-	encoding.TextUnmarshaler
-}
-
-// Registry is a registry of string formats, with a validation method.
-type Registry interface {
-	Add(string, Format, Validator) bool
-	DelByName(string) bool
-	GetType(string) (reflect.Type, bool)
-	ContainsName(string) bool
-	Validates(string, string) bool
-	Parse(string, string) (any, error)
-	MapStructureHookFunc() mapstructure.DecodeHookFunc
-}
-
 // NewFormats creates a new formats registry seeded with the values from the default
 func NewFormats() Registry {
 	//nolint:forcetypeassert
@@ -64,10 +44,9 @@ func NewSeededFormats(seeds []knownFormat, normalizer NameNormalizer) Registry {
 	if normalizer == nil {
 		normalizer = DefaultNameNormalizer
 	}
-	// copy here, don't modify original
-	d := append([]knownFormat(nil), seeds...)
+	// copy here, don't modify the  original
 	return &defaultFormats{
-		data:          d,
+		data:          slices.Clone(seeds),
 		normalizeName: normalizer,
 	}
 }
