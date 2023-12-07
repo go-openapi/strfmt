@@ -135,7 +135,7 @@ func (id *ObjectId) UnmarshalBSON(data []byte) error {
 // BSON document if the error is nil.
 func (id ObjectId) MarshalBSONValue() (bsontype.Type, []byte, error) {
 	oid := bsonprim.ObjectID(id)
-	return bsontype.ObjectID, oid[:], nil
+	return bson.TypeObjectID, oid[:], nil
 }
 
 // UnmarshalBSONValue is an interface implemented by types that can unmarshal a
