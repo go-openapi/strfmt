@@ -2,12 +2,12 @@ module github.com/go-openapi/strfmt
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
-	github.com/go-openapi/errors v0.20.3
-	github.com/google/uuid v1.3.0
+	github.com/go-openapi/errors v0.20.4
+	github.com/google/uuid v1.4.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/oklog/ulid v1.3.1
-	github.com/stretchr/testify v1.8.2
-	go.mongodb.org/mongo-driver v1.11.3
+	github.com/stretchr/testify v1.8.4
+	go.mongodb.org/mongo-driver v1.13.0
 )
 
 require (
