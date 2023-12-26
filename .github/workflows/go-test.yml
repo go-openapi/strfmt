@@ -18,6 +18,7 @@ jobs:
         with:
           version: latest
           only-new-issues: true
+          skip-cache: true
 
   test:
     name: Unit tests
@@ -35,16 +36,16 @@ jobs:
         go-version: '${{ matrix.go_version }}'
         check-latest: true
         cache: true
+
     - uses: actions/checkout@v3
 
-    - run: go test -v -race -coverprofile="coverage-${{ matrix.os }}.${{ matrix.go_version }}.out" -covermode=atomic ./...
+    - run: go test -v -race -coverprofile="coverage-${{ matrix.os }}.${{ matrix.go_version }}.out" -covermode=atomic -coverpkg=$(go list)/... ./...
 
     - name: Upload coverage to codecov
       uses: codecov/codecov-action@v3
       with:
-        files: './coverage-${{ matrix.os }}.${{ matrix.go_version }}.out,./coverage-integration-${{ matrix.os }}.${{ matrix.go_version }}.out'
+        files: './coverage-${{ matrix.os }}.${{ matrix.go_version }}.out'
         flags: '${{ matrix.go_version }}'
         os: '${{ matrix.os }}'
         fail_ci_if_error: false
         verbose: true
-
