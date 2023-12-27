@@ -21,7 +21,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"reflect"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -175,9 +177,26 @@ func TestFormatMAC(t *testing.T) {
 func TestFormatUUID3(t *testing.T) {
 	first3 := uuid.NewMD5(uuid.NameSpaceURL, []byte("somewhere.com"))
 	other3 := uuid.NewMD5(uuid.NameSpaceURL, []byte("somewhereelse.com"))
+	other4 := uuid.Must(uuid.NewRandom())
+	other5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
 	uuid3 := UUID3(first3.String())
 	str := other3.String()
-	testStringFormat(t, &uuid3, "uuid3", str, []string{}, []string{"not-a-uuid"})
+	testStringFormat(t, &uuid3, "uuid3", str,
+		[]string{
+			other3.String(),
+			strings.ReplaceAll(other3.String(), "-", ""),
+		},
+		[]string{
+			"not-a-uuid",
+			other4.String(),
+			other5.String(),
+			strings.ReplaceAll(other4.String(), "-", ""),
+			strings.ReplaceAll(other5.String(), "-", ""),
+			strings.Replace(other3.String(), "-", "", 2),
+			strings.Replace(other4.String(), "-", "", 2),
+			strings.Replace(other5.String(), "-", "", 2),
+		},
+	)
 
 	// special case for zero UUID
 	var uuidZero UUID3
@@ -188,10 +207,27 @@ func TestFormatUUID3(t *testing.T) {
 
 func TestFormatUUID4(t *testing.T) {
 	first4 := uuid.Must(uuid.NewRandom())
+	other3 := uuid.NewMD5(uuid.NameSpaceURL, []byte("somewhere.com"))
 	other4 := uuid.Must(uuid.NewRandom())
+	other5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
 	uuid4 := UUID4(first4.String())
 	str := other4.String()
-	testStringFormat(t, &uuid4, "uuid4", str, []string{}, []string{"not-a-uuid"})
+	testStringFormat(t, &uuid4, "uuid4", str,
+		[]string{
+			other4.String(),
+			strings.ReplaceAll(other4.String(), "-", ""),
+		},
+		[]string{
+			"not-a-uuid",
+			other3.String(),
+			other5.String(),
+			strings.ReplaceAll(other3.String(), "-", ""),
+			strings.ReplaceAll(other5.String(), "-", ""),
+			strings.Replace(other3.String(), "-", "", 2),
+			strings.Replace(other4.String(), "-", "", 2),
+			strings.Replace(other5.String(), "-", "", 2),
+		},
+	)
 
 	// special case for zero UUID
 	var uuidZero UUID4
@@ -202,10 +238,27 @@ func TestFormatUUID4(t *testing.T) {
 
 func TestFormatUUID5(t *testing.T) {
 	first5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhere.com"))
+	other3 := uuid.NewMD5(uuid.NameSpaceURL, []byte("somewhere.com"))
+	other4 := uuid.Must(uuid.NewRandom())
 	other5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
 	uuid5 := UUID5(first5.String())
 	str := other5.String()
-	testStringFormat(t, &uuid5, "uuid5", str, []string{}, []string{"not-a-uuid"})
+	testStringFormat(t, &uuid5, "uuid5", str,
+		[]string{
+			other5.String(),
+			strings.ReplaceAll(other5.String(), "-", ""),
+		},
+		[]string{
+			"not-a-uuid",
+			other3.String(),
+			other4.String(),
+			strings.ReplaceAll(other3.String(), "-", ""),
+			strings.ReplaceAll(other4.String(), "-", ""),
+			strings.Replace(other3.String(), "-", "", 2),
+			strings.Replace(other4.String(), "-", "", 2),
+			strings.Replace(other5.String(), "-", "", 2),
+		},
+	)
 
 	// special case for zero UUID
 	var uuidZero UUID5
@@ -216,10 +269,34 @@ func TestFormatUUID5(t *testing.T) {
 
 func TestFormatUUID(t *testing.T) {
 	first5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhere.com"))
+	other3 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
+	other4 := uuid.Must(uuid.NewRandom())
 	other5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
+	other6 := uuid.Must(uuid.NewV6())
+	other7 := uuid.Must(uuid.NewV7())
+	microsoft := "0" + other4.String() + "f"
+
 	uuid := UUID(first5.String())
 	str := other5.String()
-	testStringFormat(t, &uuid, "uuid", str, []string{}, []string{"not-a-uuid"})
+	testStringFormat(t, &uuid, "uuid", str,
+		[]string{
+			other3.String(),
+			other4.String(),
+			other5.String(),
+			strings.ReplaceAll(other3.String(), "-", ""),
+			strings.ReplaceAll(other4.String(), "-", ""),
+			strings.ReplaceAll(other5.String(), "-", ""),
+			other6.String(),
+			other7.String(),
+			microsoft,
+		},
+		[]string{
+			"not-a-uuid",
+			strings.Replace(other3.String(), "-", "", 2),
+			strings.Replace(other4.String(), "-", "", 2),
+			strings.Replace(other5.String(), "-", "", 2),
+		},
+	)
 
 	// special case for zero UUID
 	var uuidZero UUID
@@ -774,4 +851,49 @@ func TestDeepCopyPassword(t *testing.T) {
 	var inNil *Password
 	out3 := inNil.DeepCopy()
 	assert.Nil(t, out3)
+}
+
+func BenchmarkIsUUID(b *testing.B) {
+	const sampleSize = 100
+	rxUUID := regexp.MustCompile(UUIDPattern)
+	rxUUID3 := regexp.MustCompile(UUID3Pattern)
+	rxUUID4 := regexp.MustCompile(UUID4Pattern)
+	rxUUID5 := regexp.MustCompile(UUID5Pattern)
+
+	uuids := make([]string, 0, sampleSize)
+	uuid3s := make([]string, 0, sampleSize)
+	uuid4s := make([]string, 0, sampleSize)
+	uuid5s := make([]string, 0, sampleSize)
+
+	for i := 0; i < sampleSize; i++ {
+		seed := []byte(uuid.Must(uuid.NewRandom()).String())
+		uuids = append(uuids, uuid.Must(uuid.NewRandom()).String())
+		uuid3s = append(uuid3s, uuid.NewMD5(uuid.NameSpaceURL, seed).String())
+		uuid4s = append(uuid4s, uuid.Must(uuid.NewRandom()).String())
+		uuid5s = append(uuid5s, uuid.NewSHA1(uuid.NameSpaceURL, seed).String())
+	}
+
+	b.Run("IsUUID - google.uuid", benchmarkIs(uuids, IsUUID))
+	b.Run("IsUUID - regexp", benchmarkIs(uuids, func(id string) bool { return rxUUID.MatchString(id) }))
+
+	b.Run("IsUUIDv3 - google.uuid", benchmarkIs(uuid3s, IsUUID3))
+	b.Run("IsUUIDv3 - regexp", benchmarkIs(uuid3s, func(id string) bool { return rxUUID3.MatchString(id) }))
+
+	b.Run("IsUUIDv4 - google.uuid", benchmarkIs(uuid4s, IsUUID4))
+	b.Run("IsUUIDv4 - regexp", benchmarkIs(uuid4s, func(id string) bool { return rxUUID4.MatchString(id) }))
+
+	b.Run("IsUUIDv5 - google.uuid", benchmarkIs(uuid5s, IsUUID5))
+	b.Run("IsUUIDv5 - regexp", benchmarkIs(uuid5s, func(id string) bool { return rxUUID5.MatchString(id) }))
+}
+
+func benchmarkIs(input []string, fn func(string) bool) func(*testing.B) {
+	return func(b *testing.B) {
+		var isTrue bool
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			isTrue = fn(input[i%len(input)])
+		}
+		fmt.Fprintln(io.Discard, isTrue)
+	}
 }
