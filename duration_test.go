@@ -123,7 +123,6 @@ func TestDurationScanner_Nil(t *testing.T) {
 
 func TestDurationParser(t *testing.T) {
 	testcases := map[string]time.Duration{
-
 		// parse the short forms without spaces
 		"1ns": 1 * time.Nanosecond,
 		"1us": 1 * time.Microsecond,
@@ -182,10 +181,18 @@ func TestDurationParser(t *testing.T) {
 	}
 
 	for str, dur := range testcases {
-		testDurationParser(t, str, dur)
-		testDurationSQLScanner(t, dur)
+		t.Run(str, func(t *testing.T) {
+			testDurationParser(t, str, dur)
+
+			// negative duration
+			testDurationParser(t, "-"+str, -dur)
+			testDurationParser(t, "- "+str, -dur)
+
+			testDurationSQLScanner(t, dur)
+		})
 	}
 }
+
 func TestIsDuration_Caveats(t *testing.T) {
 	// This works too
 	e := IsDuration("45 weeks")
@@ -206,7 +213,6 @@ func TestIsDuration_Caveats(t *testing.T) {
 	// This does not work
 	e = IsDuration("12 phours")
 	assert.False(t, e)
-
 }
 
 func TestDeepCopyDuration(t *testing.T) {
