@@ -440,7 +440,7 @@ func testStringFormat(t *testing.T, what testableFormat, format, with string, va
 
 	// Stringer
 	strVal = what.String()
-	assert.Equalf(t, []byte(with), b, "[%s]String: expected %v and %v to be equal", strVal, with)
+	assert.Equalf(t, []byte(with), b, "[%s]String: expected %v and %v to be equal", format, strVal, with)
 
 	// JSON encoding interface
 	bj := []byte("\"" + with + "\"")

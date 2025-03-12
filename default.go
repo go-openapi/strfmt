@@ -18,7 +18,6 @@ import (
 	"database/sql/driver"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/mail"
 	"regexp"
@@ -96,15 +95,17 @@ func IsHostname(str string) bool {
 	}
 
 	// the sum of all label octets and label lengths is limited to 255.
-	if len(str) > 255 {
+	const maxHostnameLength = 255
+	if len(str) > maxHostnameLength {
 		return false
 	}
 
 	// Each node has a label, which is zero to 63 octets in length
+	const maxNodeLength = 63
 	parts := strings.Split(str, ".")
 	valid := true
 	for _, p := range parts {
-		if len(p) > 63 {
+		if len(p) > maxNodeLength {
 			valid = false
 		}
 	}
@@ -117,22 +118,28 @@ func IsUUID(str string) bool {
 	return err == nil
 }
 
+const (
+	uuidV3 = 3
+	uuidV4 = 4
+	uuidV5 = 5
+)
+
 // IsUUID3 returns true is the string matches a UUID v3, upper case is allowed
 func IsUUID3(str string) bool {
 	id, err := uuid.Parse(str)
-	return err == nil && id.Version() == uuid.Version(3)
+	return err == nil && id.Version() == uuid.Version(uuidV3)
 }
 
 // IsUUID4 returns true is the string matches a UUID v4, upper case is allowed
 func IsUUID4(str string) bool {
 	id, err := uuid.Parse(str)
-	return err == nil && id.Version() == uuid.Version(4)
+	return err == nil && id.Version() == uuid.Version(uuidV4)
 }
 
 // IsUUID5 returns true is the string matches a UUID v5, upper case is allowed
 func IsUUID5(str string) bool {
 	id, err := uuid.Parse(str)
-	return err == nil && id.Version() == uuid.Version(5)
+	return err == nil && id.Version() == uuid.Version(uuidV5)
 }
 
 // IsEmail validates an email address.
@@ -269,7 +276,7 @@ func (b *Base64) Scan(raw interface{}) error {
 		}
 		*b = Base64(vv)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.Base64 from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.Base64 from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -323,7 +330,7 @@ func (b *Base64) UnmarshalBSON(data []byte) error {
 		*b = Base64(vb)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as base64")
+	return fmt.Errorf("couldn't unmarshal bson bytes as base64: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -365,7 +372,7 @@ func (u *URI) Scan(raw interface{}) error {
 	case string:
 		*u = URI(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.URI from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.URI from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -411,7 +418,7 @@ func (u *URI) UnmarshalBSON(data []byte) error {
 		*u = URI(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as uri")
+	return fmt.Errorf("couldn't unmarshal bson bytes as uri: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -453,7 +460,7 @@ func (e *Email) Scan(raw interface{}) error {
 	case string:
 		*e = Email(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.Email from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.Email from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -499,7 +506,7 @@ func (e *Email) UnmarshalBSON(data []byte) error {
 		*e = Email(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as email")
+	return fmt.Errorf("couldn't unmarshal bson bytes as email: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -541,7 +548,7 @@ func (h *Hostname) Scan(raw interface{}) error {
 	case string:
 		*h = Hostname(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.Hostname from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.Hostname from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -587,7 +594,7 @@ func (h *Hostname) UnmarshalBSON(data []byte) error {
 		*h = Hostname(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as hostname")
+	return fmt.Errorf("couldn't unmarshal bson bytes as hostname: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -629,7 +636,7 @@ func (u *IPv4) Scan(raw interface{}) error {
 	case string:
 		*u = IPv4(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.IPv4 from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.IPv4 from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -675,7 +682,7 @@ func (u *IPv4) UnmarshalBSON(data []byte) error {
 		*u = IPv4(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as ipv4")
+	return fmt.Errorf("couldn't unmarshal bson bytes as ipv4: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -717,7 +724,7 @@ func (u *IPv6) Scan(raw interface{}) error {
 	case string:
 		*u = IPv6(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.IPv6 from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.IPv6 from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -763,7 +770,7 @@ func (u *IPv6) UnmarshalBSON(data []byte) error {
 		*u = IPv6(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as ipv6")
+	return fmt.Errorf("couldn't unmarshal bson bytes as ipv6: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -805,7 +812,7 @@ func (u *CIDR) Scan(raw interface{}) error {
 	case string:
 		*u = CIDR(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.CIDR from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.CIDR from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -851,7 +858,7 @@ func (u *CIDR) UnmarshalBSON(data []byte) error {
 		*u = CIDR(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as CIDR")
+	return fmt.Errorf("couldn't unmarshal bson bytes as CIDR: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -893,7 +900,7 @@ func (u *MAC) Scan(raw interface{}) error {
 	case string:
 		*u = MAC(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.IPv4 from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.IPv4 from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -939,7 +946,7 @@ func (u *MAC) UnmarshalBSON(data []byte) error {
 		*u = MAC(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as MAC")
+	return fmt.Errorf("couldn't unmarshal bson bytes as MAC: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -981,7 +988,7 @@ func (u *UUID) Scan(raw interface{}) error {
 	case string:
 		*u = UUID(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.UUID from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.UUID from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -1030,7 +1037,7 @@ func (u *UUID) UnmarshalBSON(data []byte) error {
 		*u = UUID(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as UUID")
+	return fmt.Errorf("couldn't unmarshal bson bytes as UUID: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -1072,7 +1079,7 @@ func (u *UUID3) Scan(raw interface{}) error {
 	case string:
 		*u = UUID3(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.UUID3 from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.UUID3 from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -1121,7 +1128,7 @@ func (u *UUID3) UnmarshalBSON(data []byte) error {
 		*u = UUID3(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as UUID3")
+	return fmt.Errorf("couldn't unmarshal bson bytes as UUID3: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -1163,7 +1170,7 @@ func (u *UUID4) Scan(raw interface{}) error {
 	case string:
 		*u = UUID4(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.UUID4 from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.UUID4 from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -1212,7 +1219,7 @@ func (u *UUID4) UnmarshalBSON(data []byte) error {
 		*u = UUID4(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as UUID4")
+	return fmt.Errorf("couldn't unmarshal bson bytes as UUID4: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -1254,7 +1261,7 @@ func (u *UUID5) Scan(raw interface{}) error {
 	case string:
 		*u = UUID5(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.UUID5 from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.UUID5 from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -1303,7 +1310,7 @@ func (u *UUID5) UnmarshalBSON(data []byte) error {
 		*u = UUID5(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as UUID5")
+	return fmt.Errorf("couldn't unmarshal bson bytes as UUID5: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -1345,7 +1352,7 @@ func (u *ISBN) Scan(raw interface{}) error {
 	case string:
 		*u = ISBN(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.ISBN from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.ISBN from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -1394,7 +1401,7 @@ func (u *ISBN) UnmarshalBSON(data []byte) error {
 		*u = ISBN(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as ISBN")
+	return fmt.Errorf("couldn't unmarshal bson bytes as ISBN: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -1436,7 +1443,7 @@ func (u *ISBN10) Scan(raw interface{}) error {
 	case string:
 		*u = ISBN10(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.ISBN10 from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.ISBN10 from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -1485,7 +1492,7 @@ func (u *ISBN10) UnmarshalBSON(data []byte) error {
 		*u = ISBN10(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as ISBN10")
+	return fmt.Errorf("couldn't unmarshal bson bytes as ISBN10: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -1527,7 +1534,7 @@ func (u *ISBN13) Scan(raw interface{}) error {
 	case string:
 		*u = ISBN13(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.ISBN13 from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.ISBN13 from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -1576,7 +1583,7 @@ func (u *ISBN13) UnmarshalBSON(data []byte) error {
 		*u = ISBN13(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as ISBN13")
+	return fmt.Errorf("couldn't unmarshal bson bytes as ISBN13: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -1618,7 +1625,7 @@ func (u *CreditCard) Scan(raw interface{}) error {
 	case string:
 		*u = CreditCard(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.CreditCard from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.CreditCard from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -1667,7 +1674,7 @@ func (u *CreditCard) UnmarshalBSON(data []byte) error {
 		*u = CreditCard(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as CreditCard")
+	return fmt.Errorf("couldn't unmarshal bson bytes as CreditCard: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -1709,7 +1716,7 @@ func (u *SSN) Scan(raw interface{}) error {
 	case string:
 		*u = SSN(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.SSN from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.SSN from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -1758,7 +1765,7 @@ func (u *SSN) UnmarshalBSON(data []byte) error {
 		*u = SSN(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as SSN")
+	return fmt.Errorf("couldn't unmarshal bson bytes as SSN: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -1800,7 +1807,7 @@ func (h *HexColor) Scan(raw interface{}) error {
 	case string:
 		*h = HexColor(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.HexColor from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.HexColor from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -1849,7 +1856,7 @@ func (h *HexColor) UnmarshalBSON(data []byte) error {
 		*h = HexColor(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as HexColor")
+	return fmt.Errorf("couldn't unmarshal bson bytes as HexColor: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -1891,7 +1898,7 @@ func (r *RGBColor) Scan(raw interface{}) error {
 	case string:
 		*r = RGBColor(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.RGBColor from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.RGBColor from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -1940,7 +1947,7 @@ func (r *RGBColor) UnmarshalBSON(data []byte) error {
 		*r = RGBColor(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as RGBColor")
+	return fmt.Errorf("couldn't unmarshal bson bytes as RGBColor: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
@@ -1983,7 +1990,7 @@ func (r *Password) Scan(raw interface{}) error {
 	case string:
 		*r = Password(v)
 	default:
-		return fmt.Errorf("cannot sql.Scan() strfmt.Password from: %#v", v)
+		return fmt.Errorf("cannot sql.Scan() strfmt.Password from: %#v: %w", v, ErrFormat)
 	}
 
 	return nil
@@ -2032,7 +2039,7 @@ func (r *Password) UnmarshalBSON(data []byte) error {
 		*r = Password(ud)
 		return nil
 	}
-	return errors.New("couldn't unmarshal bson bytes as Password")
+	return fmt.Errorf("couldn't unmarshal bson bytes as Password: %w", ErrFormat)
 }
 
 // DeepCopyInto copies the receiver and writes its value into out.
