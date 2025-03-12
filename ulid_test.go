@@ -201,9 +201,9 @@ func TestFormatULID_Scan(t *testing.T) {
 			case [16]byte:
 				return u, u.ULID.UnmarshalBinary(x[:])
 			case int: // just for linter
-				return u, fmt.Errorf("cannot sql.Scan() strfmt.ULID from: %#v", raw)
+				return u, fmt.Errorf("cannot sql.Scan() strfmt.ULID from: %#v: %w", raw, ErrFormat)
 			}
-			return u, fmt.Errorf("cannot sql.Scan() strfmt.ULID from: %#v", raw)
+			return u, fmt.Errorf("cannot sql.Scan() strfmt.ULID from: %#v: %w", raw, ErrFormat)
 		}
 
 		// get underlying binary implementation which is actually [16]byte
