@@ -20,43 +20,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/mail"
-	"regexp"
+	"net/netip"
+	"strconv"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
+	"golang.org/x/net/idna"
 )
 
 const (
-	// HostnamePattern http://json-schema.org/latest/json-schema-validation.html#anchor114
-	//  A string instance is valid against this attribute if it is a valid
-	//  representation for an Internet host name, as defined by RFC 1034, section 3.1 [RFC1034].
-	//  http://tools.ietf.org/html/rfc1034#section-3.5
-	//  <digit> ::= any one of the ten digits 0 through 9
-	//  var digit = /[0-9]/;
-	//  <letter> ::= any one of the 52 alphabetic characters A through Z in upper case and a through z in lower case
-	//  var letter = /[a-zA-Z]/;
-	//  <let-dig> ::= <letter> | <digit>
-	//  var letDig = /[0-9a-zA-Z]/;
-	//  <let-dig-hyp> ::= <let-dig> | "-"
-	//  var letDigHyp = /[-0-9a-zA-Z]/;
-	//  <ldh-str> ::= <let-dig-hyp> | <let-dig-hyp> <ldh-str>
-	//  var ldhStr = /[-0-9a-zA-Z]+/;
-	//  <label> ::= <letter> [ [ <ldh-str> ] <let-dig> ]
-	//  var label = /[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?/;
-	//  <subdomain> ::= <label> | <subdomain> "." <label>
-	//  var subdomain = /^[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?(\.[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?)*$/;
-	//  <domain> ::= <subdomain> | " "
+	// HostnamePattern http://json-schema.org/latest/json-schema-validation.html#anchor114.
 	//
-	// Additional validations:
-	//   - for FDQNs, top-level domain (e.g. ".com"), is at least to letters long (no special characters here)
-	//   - hostnames may start with a digit [RFC1123]
-	//   - special registered names with an underscore ('_') are not allowed in this context
-	//   - dashes are permitted, but not at the start or the end of a segment
-	//   - long top-level domain names (e.g. example.london) are permitted
-	//   - symbol unicode points are permitted (e.g. emoji) (not for top-level domain)
-	HostnamePattern = `^([a-zA-Z0-9\p{S}\p{L}]((-?[a-zA-Z0-9\p{S}\p{L}]{0,62})?)|([a-zA-Z0-9\p{S}\p{L}](([a-zA-Z0-9-\p{S}\p{L}]{0,61}[a-zA-Z0-9\p{S}\p{L}])?)(\.)){1,}([a-zA-Z\p{L}]){2,63})$`
+	// Deprecated: this package no longer uses regular expressions to validate hostnames.
+	HostnamePattern = `^([a-zA-Z0-9\p{S}\p{L}]((-?[a-zA-Z0-9\p{S}\p{L}]{0,62})?)|([a-zA-Z0-9\p{S}\p{L}](([a-zA-Z0-9-\p{S}\p{L}]{0,61}[a-zA-Z0-9\p{S}\p{L}])?)(\.)){1,}([a-zA-Z0-9-\p{L}]){2,63})$`
 
 	// json null type
 	jsonNull = "null"
@@ -84,32 +62,237 @@ const (
 	UUID5Pattern = `(?i)(^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$)|(^[0-9a-f]{12}5[0-9a-f]{3}[89ab][0-9a-f]{15}$)`
 )
 
-var (
-	rxHostname = regexp.MustCompile(HostnamePattern)
+var idnaHostChecker = idna.New(
+	idna.ValidateForRegistration(), // shorthand for StrictDomainName, ValidateLabels, VerifyDNSLength, BidiRule
 )
 
-// IsHostname returns true when the string is a valid hostname
+// IsHostname returns true when the string is a valid hostname.
+//
+// It follows the rules detailed at https://url.spec.whatwg.org/#concept-host-parser
+// and implemented by most modern web browsers.
+//
+// It supports IDNA rules regarding internationalized names with unicode.
+//
+// Besides:
+// * the empty string is not a valid host name
+// * a trailing dot is allowed in names and IPv4's (not IPv6)
+// * a host name can be a valid IPv4 (with decimal, octal or hexadecimal numbers) or IPv6 address
+// * IPv6 zones are disallowed
+// * top-level domains can be unicode (cf. https://www.iana.org/domains/root/db).
+//
+// NOTE: this validator doesn't check top-level domains against the IANA root database.
+// It merely ensures that a top-level domain in a FQDN is at least 2 code points long.
 func IsHostname(str string) bool {
-	if !rxHostname.MatchString(str) {
+	if len(str) == 0 {
 		return false
 	}
 
-	// the sum of all label octets and label lengths is limited to 255.
-	const maxHostnameLength = 255
-	if len(str) > maxHostnameLength {
+	// IP v6 check
+	const minSizeIPv6 = 2
+	if str[0] == '[' {
+		if len(str) < minSizeIPv6 {
+			return false
+		}
+
+		if str[len(str)-1] != ']' {
+			return false
+		}
+
+		return isValidIPv6(str[1 : len(str)-1])
+	}
+
+	// IDNA check
+	res, err := idnaHostChecker.ToASCII(strings.ToLower(str))
+	if err != nil || res == "" {
 		return false
 	}
 
-	// Each node has a label, which is zero to 63 octets in length
-	const maxNodeLength = 63
-	parts := strings.Split(str, ".")
-	valid := true
-	for _, p := range parts {
-		if len(p) > maxNodeLength {
-			valid = false
+	parts := strings.Split(res, ".")
+
+	// IP v4 check
+	lastPart, lastIndex, shouldBeIPv4 := domainEndsAsNumber(parts)
+	if shouldBeIPv4 {
+		// domain ends in a number: must be an IPv4
+		return isValidIPv4(parts[:lastIndex+1]) // if the last part is a trailing dot, remove it
+	}
+
+	// check TLD length (excluding trailing dot)
+	const minTLDLength = 2
+	if lastIndex > 0 && len(lastPart) < minTLDLength {
+		return false
+	}
+
+	return true
+}
+
+// domainEndsAsNumber determines if a domain name ends with a decimal, octal or hex digit,
+// accounting for a possible trailing dot (the last part being empty in that case).
+//
+// It returns the last non-trailing dot part and if this part consists only of (dec/hex/oct) digits.
+func domainEndsAsNumber(parts []string) (lastPart string, lastIndex int, ok bool) {
+	lastIndex = len(parts) - 1
+	lastPart = parts[lastIndex]
+	if len(lastPart) == 0 {
+		// trailing dot
+		if len(parts) == 1 { // dot-only string: normally already ruled out by the IDNA check above
+			return lastPart, lastIndex, false
+		}
+
+		lastIndex--
+		lastPart = parts[lastIndex]
+	}
+
+	if startOfHexDigit(lastPart) {
+		for _, b := range []byte(lastPart[2:]) {
+			if !isHexDigit(b) {
+				return lastPart, lastIndex, false
+			}
+		}
+
+		return lastPart, lastIndex, true
+	}
+
+	// check for decimal and octal
+	for _, b := range []byte(lastPart) {
+		if !isASCIIDigit(b) {
+			return lastPart, lastIndex, false
 		}
 	}
-	return valid
+
+	return lastPart, lastIndex, true
+}
+
+const (
+	minSizeHexDigitPart = 2
+	minSizeOctDigitPart = 1
+)
+
+func startOfHexDigit(str string) bool {
+	return len(str) >= minSizeHexDigitPart && str[0] == '0' && (str[1] == 'x' || str[1] == 'X')
+}
+
+func startOfOctalDigit(str string) bool {
+	// a single "0" is considered decimal, "00" is a valid octal value
+	return len(str) > minSizeOctDigitPart && str[0] == '0'
+}
+
+func isValidIPv6(str string) bool {
+	// disallow empty ipv6 address
+	if len(str) == 0 {
+		return false
+	}
+
+	addr, err := netip.ParseAddr(str[1 : len(str)-1])
+	if err != nil {
+		return false
+	}
+
+	// explicit desupport of IPv6 zones
+	if addr.Zone() != "" {
+		return false
+	}
+
+	return true
+}
+
+// isValidIPv4 parses an IPv4 with hex-digit parts allowed.
+//
+// We can't rely on [netip.ParseAddr] because we may get a mix of decimal, octal and hex digits.
+func isValidIPv4(parts []string) bool {
+	const (
+		maxPartsInIPv4  = 4
+		maxDigitsInPart = 11 // max size of a 4-bytes hex or octal digit
+	)
+
+	if len(parts) == 0 || len(parts) > maxPartsInIPv4 {
+		return false
+	}
+
+	// we call this when we know that the last part is a digit part, so len(lastPart)>0
+
+	digits := make([]uint64, 0, maxPartsInIPv4)
+	for _, part := range parts {
+		if len(part) == 0 { // empty part: this case has normally been already ruled out by the IDNA check above
+			return false
+		}
+
+		if len(part) > maxDigitsInPart { // whether decimal, octal or hex, an address can't exceed that length
+			return false
+		}
+
+		if !isASCIIDigit(part[0]) { // start of an IPv4 part is always a digit
+			return false
+		}
+
+		switch {
+		case startOfHexDigit(part):
+			hexString := part[minSizeHexDigitPart:]
+			if len(hexString) == 0 { // 0x part: assume 0
+				digits = append(digits, 0)
+
+				continue
+			}
+
+			hexDigit, err := strconv.ParseUint(hexString, 16, 32)
+			if err != nil {
+				return false
+			}
+
+			digits = append(digits, hexDigit)
+
+			continue
+
+		case startOfOctalDigit(part):
+			octString := part[minSizeOctDigitPart:] // we know that this is not empty
+			octDigit, err := strconv.ParseUint(octString, 8, 32)
+			if err != nil {
+				return false
+			}
+
+			digits = append(digits, octDigit)
+
+		default: // assume decimal digits (0-255)
+			// we know that we don't have a leading 0 (would have been caught by octal digit)
+			decDigit, err := strconv.ParseUint(part, 10, 8)
+			if err != nil {
+				return false
+			}
+
+			digits = append(digits, decDigit)
+		}
+	}
+
+	// now check the digits: the last digit may encompass several parts of the address
+	lastDigit := digits[len(digits)-1]
+	if lastDigit > uint64(1)<<uint64(8*(maxPartsInIPv4+1-len(digits))) { //nolint:gosec,mnd // 256^(5 - len(digits)) - safe conversion
+		return false
+	}
+
+	if len(digits) > 1 {
+		const maxUint8 = uint64(^uint8(0))
+
+		for i := 0; i < len(digits)-2; i++ {
+			if digits[i] > maxUint8 {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+func isHexDigit(c byte) bool {
+	switch {
+	case '0' <= c && c <= '9':
+		return true
+	case 'a' <= c && c <= 'f': // assume the input string to be lower case
+		return true
+	}
+	return false
+}
+
+func isASCIIDigit(c byte) bool {
+	return c >= '0' && c <= '9'
 }
 
 // IsUUID returns true is the string matches a UUID (in any version, including v6 and v7), upper case is allowed
