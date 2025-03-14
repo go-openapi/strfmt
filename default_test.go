@@ -100,6 +100,8 @@ func TestFormatHostname(t *testing.T) {
 		"x.",
 		"a.b.c.dot-",
 		"a.b.c.é;ö",
+		"www.詹姆斯.XN--1B4C3D", // invalid puny code
+		"www.कॉम",            // no           t unicode letters (devanagari phonetic signs)
 	}
 	validHostnames := []string{
 		"somewhere.com",
@@ -143,6 +145,9 @@ func TestFormatHostname(t *testing.T) {
 		"www.élégigôö.org",
 		// long top-level domains
 		"www.詹姆斯.london",
+		// localized top-level domains
+		"www.च.चऒ",            // un           icode letters (davangari)
+		"www.詹姆斯.xn--11b4c3d", // valid puny code
 	}
 
 	testStringFormat(t, &hostname, "hostname", str, []string{}, invalidHostnames)
@@ -865,7 +870,7 @@ func BenchmarkIsUUID(b *testing.B) {
 	uuid4s := make([]string, 0, sampleSize)
 	uuid5s := make([]string, 0, sampleSize)
 
-	for i := 0; i < sampleSize; i++ {
+	for range sampleSize {
 		seed := []byte(uuid.Must(uuid.NewRandom()).String())
 		uuids = append(uuids, uuid.Must(uuid.NewRandom()).String())
 		uuid3s = append(uuid3s, uuid.NewMD5(uuid.NameSpaceURL, seed).String())
@@ -891,7 +896,7 @@ func benchmarkIs(input []string, fn func(string) bool) func(*testing.B) {
 		var isTrue bool
 		b.ReportAllocs()
 		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+		for i := range b.N {
 			isTrue = fn(input[i%len(input)])
 		}
 		fmt.Fprintln(io.Discard, isTrue)

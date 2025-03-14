@@ -26,10 +26,12 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
+	"golang.org/x/net/idna"
 )
 
 const (
-	// HostnamePattern http://json-schema.org/latest/json-schema-validation.html#anchor114
+	// HostnamePattern http://json-schema.org/latest/json-schema-validation.html#anchor114.
+	//
 	//  A string instance is valid against this attribute if it is a valid
 	//  representation for an Internet host name, as defined by RFC 1034, section 3.1 [RFC1034].
 	//  http://tools.ietf.org/html/rfc1034#section-3.5
@@ -50,13 +52,15 @@ const (
 	//  <domain> ::= <subdomain> | " "
 	//
 	// Additional validations:
-	//   - for FDQNs, top-level domain (e.g. ".com"), is at least to letters long (no special characters here)
+	//   - for FDQNs, top-level domain (e.g. ".com"), is at least two letters long. Valid Unicode letters are permitted, as well as their puny code representation.
 	//   - hostnames may start with a digit [RFC1123]
 	//   - special registered names with an underscore ('_') are not allowed in this context
 	//   - dashes are permitted, but not at the start or the end of a segment
-	//   - long top-level domain names (e.g. example.london) are permitted
+	//   - long top-level domain names (e.g. example.london) are permitted, and dash is a permitted character for the TLD
 	//   - symbol unicode points are permitted (e.g. emoji) (not for top-level domain)
-	HostnamePattern = `^([a-zA-Z0-9\p{S}\p{L}]((-?[a-zA-Z0-9\p{S}\p{L}]{0,62})?)|([a-zA-Z0-9\p{S}\p{L}](([a-zA-Z0-9-\p{S}\p{L}]{0,61}[a-zA-Z0-9\p{S}\p{L}])?)(\.)){1,}([a-zA-Z\p{L}]){2,63})$`
+	//
+	// Notice that this depends on the categorization of Unicode runes as letters.
+	HostnamePattern = `^([a-zA-Z0-9\p{S}\p{L}]((-?[a-zA-Z0-9\p{S}\p{L}]{0,62})?)|([a-zA-Z0-9\p{S}\p{L}](([a-zA-Z0-9-\p{S}\p{L}]{0,61}[a-zA-Z0-9\p{S}\p{L}])?)(\.)){1,}([a-zA-Z0-9-\p{L}]){2,63})$`
 
 	// json null type
 	jsonNull = "null"
@@ -109,7 +113,20 @@ func IsHostname(str string) bool {
 			valid = false
 		}
 	}
-	return valid
+
+	if !valid {
+		return false
+	}
+
+	if len(parts) > 1 && strings.ContainsRune(parts[len(parts)-1], '-') {
+		// if the top-level domain name contains hyphens, then it must be a valid puny code representation.
+		// We use idna to further check the TLD part
+		_, err := idna.Registration.ToUnicode(strings.ToLower(parts[len(parts)-1]))
+
+		return err == nil
+	}
+
+	return true
 }
 
 // IsUUID returns true is the string matches a UUID (in any version, including v6 and v7), upper case is allowed
