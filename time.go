@@ -131,18 +131,18 @@ func ParseDateTime(data string) (DateTime, error) {
 // swagger:strfmt date-time
 type DateTime time.Time
 
-// NewDateTime is a representation of the UNIX epoch (January 1, 1970 00:00:00 UTC) for the DateTime type.
+// NewDateTime is a representation of the UNIX epoch (January 1, 1970 00:00:00 UTC) for the [DateTime] type.
 //
-// Notice that this is not the zero value of the DateTime type.
+// Notice that this is not the zero value of the [DateTime] type.
 //
-// You may use DateTime.IsUNIXZero() to check against this value.
+// You may use [DateTime.IsUNIXZero] to check against this value.
 func NewDateTime() DateTime {
 	return DateTime(time.Unix(0, 0).UTC())
 }
 
-// MakeDateTime is a representation of the zero value of the DateTime type (January 1, year 1, 00:00:00 UTC).
+// MakeDateTime is a representation of the zero value of the [DateTime] type (January 1, year 1, 00:00:00 UTC).
 //
-// You may use Datetime.IsZero() to check against this value.
+// You may use [Datetime.IsZero] to check against this value.
 func MakeDateTime() DateTime {
 	return DateTime(time.Time{})
 }

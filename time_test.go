@@ -70,7 +70,7 @@ func TestIsZero(t *testing.T) {
 		assert.True(t, MakeDateTime().IsZero())
 	})
 
-	t.Run("empty DatTime should be zero", func(t *testing.T) {
+	t.Run("empty DateTime should be zero", func(t *testing.T) {
 		dt := DateTime{}
 		assert.True(t, dt.IsZero())
 	})
