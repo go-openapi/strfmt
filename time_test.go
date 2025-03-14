@@ -56,13 +56,24 @@ func TestNewDateTime(t *testing.T) {
 }
 
 func TestIsZero(t *testing.T) {
-	var empty DateTime
-	assert.True(t, empty.IsZero())
-	assert.False(t, DateTime(time.Unix(100, 5)).IsZero())
+	t.Run("time.Unix(100,5) should not be zero", func(t *testing.T) {
+		assert.False(t, DateTime(time.Unix(100, 5)).IsZero())
+	})
 
-	// time.Unix(0,0) does not produce a true zero value struct,
-	// so this is expected to fail.
-	assert.False(t, NewDateTime().IsZero())
+	t.Run("NewDateTime() should not be zero", func(t *testing.T) {
+		// time.Unix(0,0) does not produce a true zero value struct,
+		// so this is expected to fail.
+		assert.False(t, NewDateTime().IsZero())
+	})
+
+	t.Run("MakeDateTime() should be zero", func(t *testing.T) {
+		assert.True(t, MakeDateTime().IsZero())
+	})
+
+	t.Run("empty DateTime should be zero", func(t *testing.T) {
+		dt := DateTime{}
+		assert.True(t, dt.IsZero())
+	})
 }
 
 func TestIsUnixZero(t *testing.T) {

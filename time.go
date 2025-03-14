@@ -29,7 +29,8 @@ import (
 )
 
 var (
-	// UnixZero sets the zero unix timestamp we want to compare against.
+	// UnixZero sets the zero unix UTC timestamp we want to compare against.
+	//
 	// Unix 0 for an EST timezone is not equivalent to a UTC timezone.
 	UnixZero = time.Unix(0, 0).UTC()
 )
@@ -121,7 +122,8 @@ func ParseDateTime(data string) (DateTime, error) {
 	return DateTime{}, lastError
 }
 
-// DateTime is a time but it serializes to ISO8601 format with millis
+// DateTime is a time but it serializes to ISO8601 format with millis.
+//
 // It knows how to read 3 different variations of a RFC3339 date time.
 // Most APIs we encounter want either millisecond or second precision times.
 // This just tries to make it worry-free.
@@ -129,9 +131,20 @@ func ParseDateTime(data string) (DateTime, error) {
 // swagger:strfmt date-time
 type DateTime time.Time
 
-// NewDateTime is a representation of zero value for DateTime type
+// NewDateTime is a representation of the UNIX epoch (January 1, 1970 00:00:00 UTC) for the [DateTime] type.
+//
+// Notice that this is not the zero value of the [DateTime] type.
+//
+// You may use [DateTime.IsUNIXZero] to check against this value.
 func NewDateTime() DateTime {
 	return DateTime(time.Unix(0, 0).UTC())
+}
+
+// MakeDateTime is a representation of the zero value of the [DateTime] type (January 1, year 1, 00:00:00 UTC).
+//
+// You may use [Datetime.IsZero] to check against this value.
+func MakeDateTime() DateTime {
+	return DateTime(time.Time{})
 }
 
 // String converts this time to a string
