@@ -107,26 +107,26 @@ func IsHostname(str string) bool {
 	// Each node has a label, which is zero to 63 octets in length
 	const maxNodeLength = 63
 	parts := strings.Split(str, ".")
-	valid := true
 	for _, p := range parts {
 		if len(p) > maxNodeLength {
-			valid = false
+			return false
 		}
 	}
 
-	if !valid {
-		return false
+	const numPartsWithoutTLD = 2
+	if len(parts) < numPartsWithoutTLD {
+		return true
 	}
 
-	if len(parts) > 1 && strings.ContainsRune(parts[len(parts)-1], '-') {
-		// if the top-level domain name contains hyphens, then it must be a valid puny code representation.
-		// We use idna to further check the TLD part
-		_, err := idna.Registration.ToUnicode(strings.ToLower(parts[len(parts)-1]))
-
-		return err == nil
+	if !strings.ContainsRune(parts[len(parts)-1], '-') {
+		return true
 	}
 
-	return true
+	// if the top-level domain name contains hyphens, then it must be a valid puny code representation.
+	// We use idna to further check the TLD part
+	_, err := idna.Registration.ToUnicode(strings.ToLower(parts[len(parts)-1]))
+
+	return err == nil
 }
 
 // IsUUID returns true is the string matches a UUID (in any version, including v6 and v7), upper case is allowed

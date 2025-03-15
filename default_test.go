@@ -101,10 +101,12 @@ func TestFormatHostname(t *testing.T) {
 		"a.b.c.dot-",
 		"a.b.c.é;ö",
 		"www.詹姆斯.XN--1B4C3D", // invalid puny code
-		"www.कॉम",            // no           t unicode letters (devanagari phonetic signs)
+		"www.कॉम",            // not unicode letters (devanagari phonetic signs)
+		"@www",
 	}
 	validHostnames := []string{
 		"somewhere.com",
+		"Somewhere.Com",
 		"888.com",
 		"a.com",
 		"a.b.com",
@@ -128,7 +130,6 @@ func TestFormatHostname(t *testing.T) {
 		"www.example.ôlà",
 		"ôlà.ôlà",
 		"ôlà.ôlà.ôlà",
-		"ex$ample",
 		"localhost",
 		"example",
 		"x",
@@ -137,8 +138,6 @@ func TestFormatHostname(t *testing.T) {
 		"www.example.org",
 		"a.b.c.d.e.f.g.dot",
 		// extended symbol alphabet
-		"ex=ample.com",
-		"<foo>",
 		"www.example-hyphenated.org",
 		// localized hostnames
 		"www.詹姆斯.org",
@@ -146,8 +145,14 @@ func TestFormatHostname(t *testing.T) {
 		// long top-level domains
 		"www.詹姆斯.london",
 		// localized top-level domains
-		"www.च.चऒ",            // un           icode letters (davangari)
+		"www.च.चऒ",            // valid unicode letters (devanagari)
 		"www.詹姆斯.xn--11b4c3d", // valid puny code
+		// TODO(fredbi): improve hostame validation
+		"5512", // TODO: this is actually invalid and passes validation
+		"<foo>",
+		"ex=ample.com",
+		"ex$ample",
+		"example^example",
 	}
 
 	testStringFormat(t, &hostname, "hostname", str, []string{}, invalidHostnames)
