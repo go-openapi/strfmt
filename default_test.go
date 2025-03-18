@@ -140,6 +140,9 @@ func TestFormatHostname(t *testing.T) {
 		"foo.09",                 // expected an IP v4
 		"foo.0x04",               // expected an IP v4
 		"💩.123",                  //  expected an IP v4
+		"0b1010.2.3.4",           // unsupported binary digits
+		"0o07.2.3.4",             // unsupported alternated octal notation
+		"localhost:81",
 	}
 
 	validHostnames := []string{

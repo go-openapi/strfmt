@@ -63,7 +63,7 @@ const (
 )
 
 var idnaHostChecker = idna.New(
-	idna.ValidateForRegistration(), // shorthand for StrictDomainName, ValidateLabels, VerifyDNSLength, BidiRule
+	idna.ValidateForRegistration(), // shorthand for [idna.StrictDomainName],  [idna.ValidateLabels], [idna.VerifyDNSLength], [idna.BidiRule]
 )
 
 // IsHostname returns true when the string is a valid hostname.
@@ -88,17 +88,13 @@ func IsHostname(str string) bool {
 	}
 
 	// IP v6 check
-	const minSizeIPv6 = 2
-	if str[0] == '[' {
-		if len(str) < minSizeIPv6 {
+	if ipv6Cleaned, found := strings.CutPrefix(str, "["); found {
+		ipv6Cleaned, found = strings.CutSuffix(ipv6Cleaned, "]")
+		if !found {
 			return false
 		}
 
-		if str[len(str)-1] != ']' {
-			return false
-		}
-
-		return isValidIPv6(str[1 : len(str)-1])
+		return isValidIPv6(ipv6Cleaned)
 	}
 
 	// IDNA check
@@ -128,8 +124,10 @@ func IsHostname(str string) bool {
 // domainEndsAsNumber determines if a domain name ends with a decimal, octal or hex digit,
 // accounting for a possible trailing dot (the last part being empty in that case).
 //
-// It returns the last non-trailing dot part and if this part consists only of (dec/hex/oct) digits.
+// It returns the last non-trailing dot part and if that part consists only of (dec/hex/oct) digits.
 func domainEndsAsNumber(parts []string) (lastPart string, lastIndex int, ok bool) {
+	// NOTE: using ParseUint(x, 0, 32) is not an option, as the IPv4 format supported why WHATWG
+	// doesn't support notations such as "0b1001" (binary digits) or "0o666" (alternate notation for octal digits).
 	lastIndex = len(parts) - 1
 	lastPart = parts[lastIndex]
 	if len(lastPart) == 0 {
@@ -162,18 +160,17 @@ func domainEndsAsNumber(parts []string) (lastPart string, lastIndex int, ok bool
 	return lastPart, lastIndex, true
 }
 
-const (
-	minSizeHexDigitPart = 2
-	minSizeOctDigitPart = 1
-)
-
 func startOfHexDigit(str string) bool {
-	return len(str) >= minSizeHexDigitPart && str[0] == '0' && (str[1] == 'x' || str[1] == 'X')
+	return strings.HasPrefix(str, "0x") // the input has already been lower-cased
 }
 
 func startOfOctalDigit(str string) bool {
-	// a single "0" is considered decimal, "00" is a valid octal value
-	return len(str) > minSizeOctDigitPart && str[0] == '0'
+	if str == "0" {
+		// a single "0" is considered decimal
+		return false
+	}
+
+	return strings.HasPrefix(str, "0")
 }
 
 func isValidIPv6(str string) bool {
@@ -182,8 +179,12 @@ func isValidIPv6(str string) bool {
 		return false
 	}
 
-	addr, err := netip.ParseAddr(str[1 : len(str)-1])
+	addr, err := netip.ParseAddr(str)
 	if err != nil {
+		return false
+	}
+
+	if !addr.Is6() {
 		return false
 	}
 
@@ -195,10 +196,24 @@ func isValidIPv6(str string) bool {
 	return true
 }
 
-// isValidIPv4 parses an IPv4 with hex-digit parts allowed.
+// isValidIPv4 parses an IPv4 with deciaml, hex or octal digit parts.
 //
 // We can't rely on [netip.ParseAddr] because we may get a mix of decimal, octal and hex digits.
+//
+// Examples of valid addresses not supported by [netip.ParseAddr] or [net.ParseIP]:
+//
+//	"192.0x00A80001"
+//	"0300.0250.0340.001"
+//	"1.0x.1.1"
+//
+// But not:
+//
+//	"0b1010.2.3.4"
+//	"0o07.2.3.4"
 func isValidIPv4(parts []string) bool {
+	// NOTE: using ParseUint(x, 0, 32) is not an option, even though it would simplify this code a lot.
+	// The IPv4 format supported why WHATWG doesn't support notations such as "0b1001" (binary digits)
+	// or "0o666" (alternate notation for octal digits).
 	const (
 		maxPartsInIPv4  = 4
 		maxDigitsInPart = 11 // max size of a 4-bytes hex or octal digit
@@ -226,7 +241,8 @@ func isValidIPv4(parts []string) bool {
 
 		switch {
 		case startOfHexDigit(part):
-			hexString := part[minSizeHexDigitPart:]
+			const hexDigitOffset = 2
+			hexString := part[hexDigitOffset:]
 			if len(hexString) == 0 { // 0x part: assume 0
 				digits = append(digits, 0)
 
@@ -243,7 +259,8 @@ func isValidIPv4(parts []string) bool {
 			continue
 
 		case startOfOctalDigit(part):
-			octString := part[minSizeOctDigitPart:] // we know that this is not empty
+			const octDigitOffset = 1
+			octString := part[octDigitOffset:] // we know that this is not empty
 			octDigit, err := strconv.ParseUint(octString, 8, 32)
 			if err != nil {
 				return false
