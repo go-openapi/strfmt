@@ -960,3 +960,71 @@ func benchmarkIs(input []string, fn func(string) bool) func(*testing.B) {
 		fmt.Fprintln(io.Discard, isTrue)
 	}
 }
+
+func BenchmarkIsHostname(b *testing.B) {
+	hostnames := []string{
+		"somewhere.com",
+		"888.com",
+		"a.com",
+		"a.b.com",
+		"a.b.c.com",
+		"a.b.c.d.com",
+		"a.b.c.d.e.com",
+		"1.com",
+		"1.2.com",
+		"1.2.3.com",
+		"1.2.3.4.com",
+		"99.domain.com",
+		"99.99.domain.com",
+		"1wwworg.example.com",
+		"1000wwworg.example.com",
+		"xn--bcher-kva.example.com",
+		"xn-80ak6aa92e.co",
+		"xn-80ak6aa92e.com",
+		"xn--ls8h.la",
+		"☁→❄→☃→☀→☺→☂→☹→✝.ws",
+		"www.example.onion",
+		"www.example.ôlà",
+		"ôlà.ôlà",
+		"ôlà.ôlà.ôlà",
+		"ex$ample",
+		"localhost",
+		"example",
+		"x",
+		"x-y",
+		"a.b.c.dot",
+		"www.example.org",
+		"a.b.c.d.e.f.g.dot",
+		"ex=ample.com",
+		"<foo>",
+		"www.example-hyphenated.org",
+		"www.詹姆斯.org",
+		"www.élégigôö.org",
+		"www.詹姆斯.london",
+	}
+	rxHostname := regexp.MustCompile(HostnamePattern)
+
+	b.Run("IsHostname - regexp", benchmarkIs(hostnames, func(str string) bool {
+		// regexp-based version of IsHostname
+		if !rxHostname.MatchString(str) {
+			return false
+		}
+
+		const maxHostnameLength = 255
+		if len(str) > maxHostnameLength {
+			return false
+		}
+
+		const maxNodeLength = 63
+		parts := strings.Split(str, ".")
+		valid := true
+		for _, p := range parts {
+			if len(p) > maxNodeLength {
+				valid = false
+			}
+		}
+		return valid
+
+	}))
+	b.Run("IsHostname - idna", benchmarkIs(hostnames, IsHostname))
+}
