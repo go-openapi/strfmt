@@ -75,7 +75,6 @@ func TestFormatHostname(t *testing.T) {
 	invalidHostnames := []string{
 		"somewhere.com!",
 		"user@email.domain",
-		"1.1.1.1",
 		veryLongStr,
 		longAddrSegment,
 		// dashes
@@ -87,22 +86,68 @@ func TestFormatHostname(t *testing.T) {
 		"www.-d.org",
 		"www-",
 		"-www",
+		"a.b.c.dot-",
 		// other characters (not in symbols)
 		"www.ex ample.org",
 		"_www.example.org",
 		"www.ex;ample.org",
 		"www.example_underscored.org",
-		// short top-level domains
+		// top-level domains too short
 		"www.詹姆斯.x",
 		"a.b.c.d",
-		"-xyz",
-		"xyz-",
-		"x.",
-		"a.b.c.dot-",
+		"www.詹姆斯.XN--1B4C3D", // invalid puny code
+		"@www",
 		"a.b.c.é;ö",
+		// these code points are invalid
+		"ex=ample.com",
+		"ex$ample",
+		"example^example",
+		"<foo>",
+		"ex_ample",
+		"ex*ample",
+		"ex\\ample",
+		"www.\u0025",
+		"www.\u007f",
+		"www.\u0000",
+		"www..com",
+		"..example.com",
+		"5512",                      // only digits is invalid
+		"[fe80::b059:65f4:e877:c40", // invalid ip v6
+		"fe80::b059:65f4:e877:c40]",
+		"[192.168.250.1]",               // is an ip v4 not an ip v6
+		"[",                             // invalid start of ipv6
+		"[]",                            // empty ip v6
+		"[1:2:3:4:5:6:7:8:9]",           // invalid ip v6
+		"[:1]]",                         // invalid ip v6
+		"[1::1::1]]",                    // invalid ip v6
+		"[fe80::1%en0]",                 // ip v6 with zone
+		"[fe80::b059:65f4:e877:c40%20]", // ip v6 with zone
+		"[2001:0db8:85a3:0000:0000:8a2e:0370:7334].", // invalid in this context
+		"", // empty host
+		".",
+		"..",
+		"192.168.219.168.254",    // invalid ip v4
+		"256.256.256.256",        // looks like an IP v4 but is not
+		"192.168..168",           // invalid ip v4
+		"192.168.0xg.168",        // invalid ip v4
+		"0..0x300",               // out of range IP
+		"1.2.3.09",               // leading 0, not an octal value
+		"09.2.3.4",               // leading 0, not an octal value
+		"0x100.2.3.4",            // out of range IP v4
+		"192.0xffA80001",         // out of range IP v4
+		"0x0a.2.0x0000000000f.3", // number part is too long
+		"foo.2.3.4",              // expected an IP v4
+		"foo.09",                 // expected an IP v4
+		"foo.0x04",               // expected an IP v4
+		"💩.123",                  //  expected an IP v4
+		"0b1010.2.3.4",           // unsupported binary digits
+		"0o07.2.3.4",             // unsupported alternated octal notation
+		"localhost:81",
 	}
+
 	validHostnames := []string{
 		"somewhere.com",
+		"Somewhere.Com",
 		"888.com",
 		"a.com",
 		"a.b.com",
@@ -121,12 +166,15 @@ func TestFormatHostname(t *testing.T) {
 		"xn-80ak6aa92e.co",
 		"xn-80ak6aa92e.com",
 		"xn--ls8h.la",
+		"x.",       // valid trailing dot
+		"foo.bar.", // valid trailing dot
+		// extended symbol alphabet
 		"☁→❄→☃→☀→☺→☂→☹→✝.ws",
+		"💩.tv",
 		"www.example.onion",
 		"www.example.ôlà",
 		"ôlà.ôlà",
 		"ôlà.ôlà.ôlà",
-		"ex$ample",
 		"localhost",
 		"example",
 		"x",
@@ -134,15 +182,30 @@ func TestFormatHostname(t *testing.T) {
 		"a.b.c.dot",
 		"www.example.org",
 		"a.b.c.d.e.f.g.dot",
-		// extended symbol alphabet
-		"ex=ample.com",
-		"<foo>",
 		"www.example-hyphenated.org",
+		"foo.x04", // valid (last part not a number)
+		"foo.0xz", // valid (last part not a number)
 		// localized hostnames
 		"www.詹姆斯.org",
+		"example.إختبار",
 		"www.élégigôö.org",
-		// long top-level domains
-		"www.詹姆斯.london",
+		"www.詹姆斯.london", // long top-level domain
+		// localized top-level domains (valid unicode top-level domains)
+		"www.च.चऒ",
+		"www.कॉम",
+		"www.詹姆斯.xn--11b4c3d", // valid puny code
+		"1.1.1.1",             // is a valid IP v4 address
+		"1.1.1.1.",            // is a valid IP v4 address, with trailing dot
+		"1.1.1.06",            // valid IP, with last part octal
+		"1.1.1.0xf",           // valid IP, with last part hex
+		"1.1.1.0xz",           // valid hostname, not IP
+		"1.0.1.1",             // is a valid IP v4 address
+		"1.0x.1.1",            // is a valid IP v4 address
+		"[2001:0db8:85a3:0000:0000:8a2e:0370:7334]", // is a valid IP v6 address
+		"192.168.219.a1",     // looks like an invalid ip v4, but is actually a valid domain
+		"192.0x00A80001",     // mixed decimal / hex IP v4
+		"0300.0250.0340.001", // octal IP v4
+		"1.2.3.00",           // leading 0, valid octal value
 	}
 
 	testStringFormat(t, &hostname, "hostname", str, []string{}, invalidHostnames)
@@ -896,4 +959,72 @@ func benchmarkIs(input []string, fn func(string) bool) func(*testing.B) {
 		}
 		fmt.Fprintln(io.Discard, isTrue)
 	}
+}
+
+func BenchmarkIsHostname(b *testing.B) {
+	hostnames := []string{
+		"somewhere.com",
+		"888.com",
+		"a.com",
+		"a.b.com",
+		"a.b.c.com",
+		"a.b.c.d.com",
+		"a.b.c.d.e.com",
+		"1.com",
+		"1.2.com",
+		"1.2.3.com",
+		"1.2.3.4.com",
+		"99.domain.com",
+		"99.99.domain.com",
+		"1wwworg.example.com",
+		"1000wwworg.example.com",
+		"xn--bcher-kva.example.com",
+		"xn-80ak6aa92e.co",
+		"xn-80ak6aa92e.com",
+		"xn--ls8h.la",
+		"☁→❄→☃→☀→☺→☂→☹→✝.ws",
+		"www.example.onion",
+		"www.example.ôlà",
+		"ôlà.ôlà",
+		"ôlà.ôlà.ôlà",
+		"ex$ample",
+		"localhost",
+		"example",
+		"x",
+		"x-y",
+		"a.b.c.dot",
+		"www.example.org",
+		"a.b.c.d.e.f.g.dot",
+		"ex=ample.com",
+		"<foo>",
+		"www.example-hyphenated.org",
+		"www.詹姆斯.org",
+		"www.élégigôö.org",
+		"www.詹姆斯.london",
+	}
+	rxHostname := regexp.MustCompile(HostnamePattern)
+
+	b.Run("IsHostname - regexp", benchmarkIs(hostnames, func(str string) bool {
+		// regexp-based version of IsHostname
+		if !rxHostname.MatchString(str) {
+			return false
+		}
+
+		const maxHostnameLength = 255
+		if len(str) > maxHostnameLength {
+			return false
+		}
+
+		const maxNodeLength = 63
+		parts := strings.Split(str, ".")
+		valid := true
+		for _, p := range parts {
+			if len(p) > maxNodeLength {
+				valid = false
+			}
+		}
+		return valid
+
+	}))
+	b.Run("IsHostname - idna", benchmarkIs(hostnames, IsHostname))
 }
