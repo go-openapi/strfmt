@@ -8,7 +8,7 @@ require (
 	github.com/oklog/ulid v1.3.1
 	github.com/stretchr/testify v1.10.0
 	go.mongodb.org/mongo-driver v1.17.3
-	golang.org/x/net v0.35.0
+	golang.org/x/net v0.36.0
 )
 
 require (
@@ -19,3 +19,4 @@ require (
 )
 
 go 1.20.0
+toolchain go1.24.1
