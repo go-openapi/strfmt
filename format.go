@@ -49,29 +49,8 @@ type Registry interface {
 	GetType(string) (reflect.Type, bool)
 	ContainsName(string) bool
 	Validates(string, string) bool
-	Parse(string, string) (interface{}, error)
+	Parse(string, string) (any, error)
 	MapStructureHookFunc() mapstructure.DecodeHookFunc
-}
-
-type knownFormat struct {
-	Name      string
-	OrigName  string
-	Type      reflect.Type
-	Validator Validator
-}
-
-// NameNormalizer is a function that normalizes a format name.
-type NameNormalizer func(string) string
-
-// DefaultNameNormalizer removes all dashes
-func DefaultNameNormalizer(name string) string {
-	return strings.ReplaceAll(name, "-", "")
-}
-
-type defaultFormats struct {
-	sync.Mutex
-	data          []knownFormat
-	normalizeName NameNormalizer
 }
 
 // NewFormats creates a new formats registry seeded with the values from the default
@@ -93,9 +72,31 @@ func NewSeededFormats(seeds []knownFormat, normalizer NameNormalizer) Registry {
 	}
 }
 
+type knownFormat struct {
+	Name      string
+	OrigName  string
+	Type      reflect.Type
+	Validator Validator
+}
+
+// NameNormalizer is a function that normalizes a format name.
+type NameNormalizer func(string) string
+
+// DefaultNameNormalizer removes all dashes
+func DefaultNameNormalizer(name string) string {
+	return strings.ReplaceAll(name, "-", "")
+}
+
+type defaultFormats struct {
+	sync.Mutex
+
+	data          []knownFormat
+	normalizeName NameNormalizer
+}
+
 // MapStructureHookFunc is a decode hook function for mapstructure
 func (f *defaultFormats) MapStructureHookFunc() mapstructure.DecodeHookFunc {
-	return func(from reflect.Type, to reflect.Type, obj interface{}) (interface{}, error) {
+	return func(from reflect.Type, to reflect.Type, obj any) (any, error) {
 		if from.Kind() != reflect.String {
 			return obj, nil
 		}
@@ -306,7 +307,7 @@ func (f *defaultFormats) Validates(name, data string) bool {
 // Parse a string into the appropriate format representation type.
 //
 // E.g. parsing a string a "date" will return a Date type.
-func (f *defaultFormats) Parse(name, data string) (interface{}, error) {
+func (f *defaultFormats) Parse(name, data string) (any, error) {
 	f.Lock()
 	defer f.Unlock()
 	nme := f.normalizeName(name)
