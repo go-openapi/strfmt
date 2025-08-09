@@ -159,7 +159,7 @@ func (t DateTime) IsZero() bool {
 
 // IsUnixZerom returns whether the date time is equivalent to time.Unix(0, 0).UTC().
 func (t DateTime) IsUnixZero() bool {
-	return time.Time(t) == UnixZero
+	return time.Time(t).Equal(UnixZero)
 }
 
 // MarshalText implements the text marshaller interface
