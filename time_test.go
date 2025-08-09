@@ -217,7 +217,7 @@ func TestDateTime_MarshalJSON(t *testing.T) {
 		dt := DateTime(example.time)
 		bb, err := dt.MarshalJSON()
 		require.NoError(t, err)
-		assert.EqualValues(t, esc([]byte(example.str)), bb)
+		assert.Equal(t, esc([]byte(example.str)), bb)
 	}
 }
 func TestDateTime_MarshalJSON_Override(t *testing.T) {
@@ -234,7 +234,7 @@ func TestDateTime_MarshalJSON_Override(t *testing.T) {
 		dt := DateTime(example.time.UTC())
 		bb, err := dt.MarshalJSON()
 		require.NoError(t, err)
-		assert.EqualValues(t, esc([]byte(example.utcStr)), bb)
+		assert.Equal(t, esc([]byte(example.utcStr)), bb)
 	}
 }
 

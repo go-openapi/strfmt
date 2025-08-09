@@ -48,7 +48,7 @@ func TestDate(t *testing.T) {
 
 	err = pp.UnmarshalJSON(bj)
 	require.NoError(t, err)
-	assert.EqualValues(t, orig, pp.String())
+	assert.Equal(t, orig, pp.String())
 
 	err = pp.UnmarshalJSON([]byte(`"1972/01/01"`))
 	require.Error(t, err)
