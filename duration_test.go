@@ -15,6 +15,7 @@
 package strfmt
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -229,4 +230,68 @@ func TestDeepCopyDuration(t *testing.T) {
 	var inNil *Duration
 	out3 := inNil.DeepCopy()
 	assert.Nil(t, out3)
+}
+
+func TestIssue169FractionalDuration(t *testing.T) {
+	for _, tt := range []struct {
+		Input       string
+		Expected    string
+		ExpectError bool
+	}{
+		{
+			Input:    "1.5 h",
+			Expected: "1h30m0s",
+		},
+		{
+			Input:    "1.5 d",
+			Expected: "36h0m0s",
+		},
+		{
+			Input:    "3.14159 d",
+			Expected: "75h23m53.376s",
+		},
+		{
+			Input:    "- 3.14159 d",
+			Expected: "-75h23m53.376s",
+		},
+		{
+			Input:       "3.141.59 d",
+			ExpectError: true,
+		},
+		{
+			Input:       ".314159 d",
+			ExpectError: true,
+		},
+		{
+			Input:       "314159. d",
+			ExpectError: true,
+		},
+	} {
+		fractionalDuration := tt
+
+		if fractionalDuration.ExpectError {
+			t.Run(fmt.Sprintf("invalid fractional duration %s should NOT parse", fractionalDuration.Input), func(t *testing.T) {
+				t.Parallel()
+
+				require.False(t, IsDuration(fractionalDuration.Input))
+			})
+
+			continue
+		}
+
+		t.Run(fmt.Sprintf("fractional duration %s should parse", fractionalDuration.Input), func(t *testing.T) {
+			t.Parallel()
+
+			require.True(t, IsDuration(fractionalDuration.Input))
+
+			var d Duration
+			require.NoError(t, d.UnmarshalText([]byte(fractionalDuration.Input)))
+
+			require.Equal(t, fractionalDuration.Expected, d.String())
+
+			dd, err := ParseDuration(fractionalDuration.Input)
+			require.NoError(t, err)
+			require.Equal(t, fractionalDuration.Expected, dd.String())
+		})
+	}
 }
