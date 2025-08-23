@@ -239,6 +239,10 @@ func TestIssue169FractionalDuration(t *testing.T) {
 		ExpectError bool
 	}{
 		{
+			Input:    "1.5 h",
+			Expected: "1h30m0s",
+		},
+		{
 			Input:    "1.5 d",
 			Expected: "36h0m0s",
 		},
