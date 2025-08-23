@@ -18,6 +18,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -60,7 +61,7 @@ var (
 		"w":  hoursInDay * daysInWeek * time.Hour,
 	}
 
-	durationMatcher = regexp.MustCompile(`(((?:-\s?)?\d+)\s*([A-Za-zµ]+))`)
+	durationMatcher = regexp.MustCompile(`^(((?:-\s?)?\d+)(\.\d+)?\s*([A-Za-zµ]+))`)
 )
 
 // IsDuration returns true if the provided string is a valid duration
@@ -100,10 +101,23 @@ func ParseDuration(cand string) (time.Duration, error) {
 
 	var dur time.Duration
 	ok := false
+	const expectGroups = 4
 	for _, match := range durationMatcher.FindAllStringSubmatch(cand, -1) {
+		if len(match) < expectGroups {
+			continue
+		}
 
 		// remove possible leading - and spaces
 		value, negative := strings.CutPrefix(match[2], "-")
+
+		// if the duration contains a decimal separator determine a divising factor
+		const neutral = 1.0
+		divisor := neutral
+		decimal, hasDecimal := strings.CutPrefix(match[3], ".")
+		if hasDecimal {
+			divisor = math.Pow10(len(decimal))
+			value += decimal // consider the value as an integer: will change units later on
+		}
 
 		// if the string is a valid duration, parse it
 		factor, err := strconv.Atoi(strings.TrimSpace(value)) // converts string to int
@@ -115,7 +129,7 @@ func ParseDuration(cand string) (time.Duration, error) {
 			factor = -factor
 		}
 
-		unit := strings.ToLower(strings.TrimSpace(match[3]))
+		unit := strings.ToLower(strings.TrimSpace(match[4]))
 
 		for _, variants := range timeUnits {
 			last := len(variants) - 1
@@ -124,6 +138,9 @@ func ParseDuration(cand string) (time.Duration, error) {
 			for i, variant := range variants {
 				if (last == i && strings.HasPrefix(unit, variant)) || strings.EqualFold(variant, unit) {
 					ok = true
+					if divisor != neutral {
+						multiplier = time.Duration(float64(multiplier) / divisor) // convert to duration only after having reduced the scale
+					}
 					dur += (time.Duration(factor) * multiplier)
 				}
 			}
