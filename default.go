@@ -288,7 +288,7 @@ func isValidIPv4(parts []string) bool {
 	if len(digits) > 1 {
 		const maxUint8 = uint64(^uint8(0))
 
-		for i := 0; i < len(digits)-2; i++ {
+		for i := range len(digits) - 2 {
 			if digits[i] > maxUint8 {
 				return false
 			}
