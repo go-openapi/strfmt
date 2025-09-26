@@ -928,7 +928,7 @@ func BenchmarkIsUUID(b *testing.B) {
 	uuid4s := make([]string, 0, sampleSize)
 	uuid5s := make([]string, 0, sampleSize)
 
-	for i := 0; i < sampleSize; i++ {
+	for range sampleSize {
 		seed := []byte(uuid.Must(uuid.NewRandom()).String())
 		uuids = append(uuids, uuid.Must(uuid.NewRandom()).String())
 		uuid3s = append(uuid3s, uuid.NewMD5(uuid.NameSpaceURL, seed).String())
@@ -954,8 +954,8 @@ func benchmarkIs(input []string, fn func(string) bool) func(*testing.B) {
 		var isTrue bool
 		b.ReportAllocs()
 		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
-			isTrue = fn(input[i%len(input)])
+		for b.Loop() {
+			isTrue = fn(input[b.N%len(input)])
 		}
 		fmt.Fprintln(io.Discard, isTrue)
 	}
