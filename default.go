@@ -19,12 +19,14 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/mail"
 	"net/netip"
+	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/asaskevich/govalidator"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/net/idna"
@@ -60,10 +62,33 @@ const (
 	//
 	// Deprecated: strfmt no longer uses regular expressions to validate UUIDs.
 	UUID5Pattern = `(?i)(^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$)|(^[0-9a-f]{12}5[0-9a-f]{3}[89ab][0-9a-f]{15}$)`
+
+	isbn10Pattern   string = "^(?:[0-9]{9}X|[0-9]{10})$"
+	isbn13Pattern   string = "^(?:[0-9]{13})$"
+	usCardPattern   string = "^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|(222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\\d{3})\\d{11}|6[27][0-9]{14})$"
+	ssnPattern      string = `^\d{3}[- ]?\d{2}[- ]?\d{4}$`
+	hexColorPattern string = "^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+	rgbColorPattern string = "^rgb\\(\\s*(0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*,\\s*(0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*,\\s*(0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*\\)$"
 )
 
-var idnaHostChecker = idna.New(
-	idna.ValidateForRegistration(), // shorthand for [idna.StrictDomainName],  [idna.ValidateLabels], [idna.VerifyDNSLength], [idna.BidiRule]
+const (
+	isbnVersion10 = 10
+	isbnVersion13 = 13
+	decimalBase   = 10
+)
+
+var (
+	idnaHostChecker = idna.New(
+		idna.ValidateForRegistration(), // shorthand for [idna.StrictDomainName],  [idna.ValidateLabels], [idna.VerifyDNSLength], [idna.BidiRule]
+	)
+
+	whiteSpacesAndMinus = regexp.MustCompile(`[\s-]+`)
+	rxISBN10            = regexp.MustCompile(isbn10Pattern)
+	rxISBN13            = regexp.MustCompile(isbn13Pattern)
+	rxCreditCard        = regexp.MustCompile(usCardPattern)
+	rxSSN               = regexp.MustCompile(ssnPattern)
+	rxHexcolor          = regexp.MustCompile(hexColorPattern)
+	rxRGBcolor          = regexp.MustCompile(rgbColorPattern)
 )
 
 // IsHostname returns true when the string is a valid hostname.
@@ -371,7 +396,7 @@ func init() {
 	//   - uuid4
 	//   - uuid5
 	u := URI("")
-	Default.Add("uri", &u, govalidator.IsRequestURI)
+	Default.Add("uri", &u, isRequestURI)
 
 	eml := Email("")
 	Default.Add("email", &eml, IsEmail)
@@ -380,16 +405,16 @@ func init() {
 	Default.Add("hostname", &hn, IsHostname)
 
 	ip4 := IPv4("")
-	Default.Add("ipv4", &ip4, govalidator.IsIPv4)
+	Default.Add("ipv4", &ip4, isIPv4)
 
 	ip6 := IPv6("")
-	Default.Add("ipv6", &ip6, govalidator.IsIPv6)
+	Default.Add("ipv6", &ip6, isIPv6)
 
 	cidr := CIDR("")
-	Default.Add("cidr", &cidr, govalidator.IsCIDR)
+	Default.Add("cidr", &cidr, isCIDR)
 
 	mac := MAC("")
-	Default.Add("mac", &mac, govalidator.IsMAC)
+	Default.Add("mac", &mac, isMAC)
 
 	uid := UUID("")
 	Default.Add("uuid", &uid, IsUUID)
@@ -404,28 +429,28 @@ func init() {
 	Default.Add("uuid5", &uid5, IsUUID5)
 
 	isbn := ISBN("")
-	Default.Add("isbn", &isbn, func(str string) bool { return govalidator.IsISBN10(str) || govalidator.IsISBN13(str) })
+	Default.Add("isbn", &isbn, func(str string) bool { return isISBN10(str) || isISBN13(str) })
 
 	isbn10 := ISBN10("")
-	Default.Add("isbn10", &isbn10, govalidator.IsISBN10)
+	Default.Add("isbn10", &isbn10, isISBN10)
 
 	isbn13 := ISBN13("")
-	Default.Add("isbn13", &isbn13, govalidator.IsISBN13)
+	Default.Add("isbn13", &isbn13, isISBN13)
 
 	cc := CreditCard("")
-	Default.Add("creditcard", &cc, govalidator.IsCreditCard)
+	Default.Add("creditcard", &cc, isCreditCard)
 
 	ssn := SSN("")
-	Default.Add("ssn", &ssn, govalidator.IsSSN)
+	Default.Add("ssn", &ssn, isSSN)
 
 	hc := HexColor("")
-	Default.Add("hexcolor", &hc, govalidator.IsHexcolor)
+	Default.Add("hexcolor", &hc, isHexcolor)
 
 	rc := RGBColor("")
-	Default.Add("rgbcolor", &rc, govalidator.IsRGBcolor)
+	Default.Add("rgbcolor", &rc, isRGBcolor)
 
 	b64 := Base64([]byte(nil))
-	Default.Add("byte", &b64, govalidator.IsBase64)
+	Default.Add("byte", &b64, isBase64)
 
 	pw := Password("")
 	Default.Add("password", &pw, func(_ string) bool { return true })
@@ -460,7 +485,7 @@ func (b *Base64) UnmarshalText(data []byte) error { // validation is performed l
 }
 
 // Scan read a value from a database driver
-func (b *Base64) Scan(raw interface{}) error {
+func (b *Base64) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		dbuf := make([]byte, base64.StdEncoding.DecodedLen(len(v)))
@@ -565,7 +590,7 @@ func (u *URI) UnmarshalText(data []byte) error { // validation is performed late
 }
 
 // Scan read a value from a database driver
-func (u *URI) Scan(raw interface{}) error {
+func (u *URI) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*u = URI(string(v))
@@ -653,7 +678,7 @@ func (e *Email) UnmarshalText(data []byte) error { // validation is performed la
 }
 
 // Scan read a value from a database driver
-func (e *Email) Scan(raw interface{}) error {
+func (e *Email) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*e = Email(string(v))
@@ -741,7 +766,7 @@ func (h *Hostname) UnmarshalText(data []byte) error { // validation is performed
 }
 
 // Scan read a value from a database driver
-func (h *Hostname) Scan(raw interface{}) error {
+func (h *Hostname) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*h = Hostname(string(v))
@@ -829,7 +854,7 @@ func (u *IPv4) UnmarshalText(data []byte) error { // validation is performed lat
 }
 
 // Scan read a value from a database driver
-func (u *IPv4) Scan(raw interface{}) error {
+func (u *IPv4) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*u = IPv4(string(v))
@@ -917,7 +942,7 @@ func (u *IPv6) UnmarshalText(data []byte) error { // validation is performed lat
 }
 
 // Scan read a value from a database driver
-func (u *IPv6) Scan(raw interface{}) error {
+func (u *IPv6) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*u = IPv6(string(v))
@@ -1005,7 +1030,7 @@ func (u *CIDR) UnmarshalText(data []byte) error { // validation is performed lat
 }
 
 // Scan read a value from a database driver
-func (u *CIDR) Scan(raw interface{}) error {
+func (u *CIDR) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*u = CIDR(string(v))
@@ -1093,7 +1118,7 @@ func (u *MAC) UnmarshalText(data []byte) error { // validation is performed late
 }
 
 // Scan read a value from a database driver
-func (u *MAC) Scan(raw interface{}) error {
+func (u *MAC) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*u = MAC(string(v))
@@ -1181,7 +1206,7 @@ func (u *UUID) UnmarshalText(data []byte) error { // validation is performed lat
 }
 
 // Scan read a value from a database driver
-func (u *UUID) Scan(raw interface{}) error {
+func (u *UUID) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*u = UUID(string(v))
@@ -1272,7 +1297,7 @@ func (u *UUID3) UnmarshalText(data []byte) error { // validation is performed la
 }
 
 // Scan read a value from a database driver
-func (u *UUID3) Scan(raw interface{}) error {
+func (u *UUID3) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*u = UUID3(string(v))
@@ -1363,7 +1388,7 @@ func (u *UUID4) UnmarshalText(data []byte) error { // validation is performed la
 }
 
 // Scan read a value from a database driver
-func (u *UUID4) Scan(raw interface{}) error {
+func (u *UUID4) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*u = UUID4(string(v))
@@ -1454,7 +1479,7 @@ func (u *UUID5) UnmarshalText(data []byte) error { // validation is performed la
 }
 
 // Scan read a value from a database driver
-func (u *UUID5) Scan(raw interface{}) error {
+func (u *UUID5) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*u = UUID5(string(v))
@@ -1545,7 +1570,7 @@ func (u *ISBN) UnmarshalText(data []byte) error { // validation is performed lat
 }
 
 // Scan read a value from a database driver
-func (u *ISBN) Scan(raw interface{}) error {
+func (u *ISBN) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*u = ISBN(string(v))
@@ -1636,7 +1661,7 @@ func (u *ISBN10) UnmarshalText(data []byte) error { // validation is performed l
 }
 
 // Scan read a value from a database driver
-func (u *ISBN10) Scan(raw interface{}) error {
+func (u *ISBN10) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*u = ISBN10(string(v))
@@ -1727,7 +1752,7 @@ func (u *ISBN13) UnmarshalText(data []byte) error { // validation is performed l
 }
 
 // Scan read a value from a database driver
-func (u *ISBN13) Scan(raw interface{}) error {
+func (u *ISBN13) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*u = ISBN13(string(v))
@@ -1818,7 +1843,7 @@ func (u *CreditCard) UnmarshalText(data []byte) error { // validation is perform
 }
 
 // Scan read a value from a database driver
-func (u *CreditCard) Scan(raw interface{}) error {
+func (u *CreditCard) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*u = CreditCard(string(v))
@@ -1909,7 +1934,7 @@ func (u *SSN) UnmarshalText(data []byte) error { // validation is performed late
 }
 
 // Scan read a value from a database driver
-func (u *SSN) Scan(raw interface{}) error {
+func (u *SSN) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*u = SSN(string(v))
@@ -2000,7 +2025,7 @@ func (h *HexColor) UnmarshalText(data []byte) error { // validation is performed
 }
 
 // Scan read a value from a database driver
-func (h *HexColor) Scan(raw interface{}) error {
+func (h *HexColor) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*h = HexColor(string(v))
@@ -2091,7 +2116,7 @@ func (r *RGBColor) UnmarshalText(data []byte) error { // validation is performed
 }
 
 // Scan read a value from a database driver
-func (r *RGBColor) Scan(raw interface{}) error {
+func (r *RGBColor) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*r = RGBColor(string(v))
@@ -2183,7 +2208,7 @@ func (r *Password) UnmarshalText(data []byte) error { // validation is performed
 }
 
 // Scan read a value from a database driver
-func (r *Password) Scan(raw interface{}) error {
+func (r *Password) Scan(raw any) error {
 	switch v := raw.(type) {
 	case []byte:
 		*r = Password(string(v))
@@ -2255,4 +2280,144 @@ func (r *Password) DeepCopy() *Password {
 	out := new(Password)
 	r.DeepCopyInto(out)
 	return out
+}
+
+func isRequestURI(rawurl string) bool {
+	_, err := url.ParseRequestURI(rawurl)
+	return err == nil
+}
+
+// isIPv4 checks if the string is an IP version 4.
+func isIPv4(str string) bool {
+	ip := net.ParseIP(str)
+	return ip != nil && strings.Contains(str, ".")
+}
+
+// isIPv6 checks if the string is an IP version 6.
+func isIPv6(str string) bool {
+	ip := net.ParseIP(str)
+	return ip != nil && strings.Contains(str, ":")
+}
+
+// isCIDR checks if the string is an valid CIDR notiation (IPV4 & IPV6)
+func isCIDR(str string) bool {
+	_, _, err := net.ParseCIDR(str)
+	return err == nil
+}
+
+// isMAC checks if a string is valid MAC address.
+// Possible MAC formats:
+// 01:23:45:67:89:ab
+// 01:23:45:67:89:ab:cd:ef
+// 01-23-45-67-89-ab
+// 01-23-45-67-89-ab-cd-ef
+// 0123.4567.89ab
+// 0123.4567.89ab.cdef
+func isMAC(str string) bool {
+	_, err := net.ParseMAC(str)
+	return err == nil
+}
+
+// isISBN checks if the string is an ISBN (version 10 or 13).
+// If version value is not equal to 10 or 13, it will be checks both variants.
+func isISBN(str string, version int) bool {
+	sanitized := whiteSpacesAndMinus.ReplaceAllString(str, "")
+	var checksum int32
+	var i int32
+
+	switch version {
+	case isbnVersion10:
+		if !rxISBN10.MatchString(sanitized) {
+			return false
+		}
+		for i = range isbnVersion10 - 1 {
+			checksum += (i + 1) * int32(sanitized[i]-'0')
+		}
+		if sanitized[isbnVersion10-1] == 'X' {
+			checksum += isbnVersion10 * isbnVersion10
+		} else {
+			checksum += isbnVersion10 * int32(sanitized[isbnVersion10-1]-'0')
+		}
+		if checksum%(isbnVersion10+1) == 0 {
+			return true
+		}
+		return false
+	case isbnVersion13:
+		if !rxISBN13.MatchString(sanitized) {
+			return false
+		}
+		factor := []int32{1, 3}
+		for i = range isbnVersion13 - 1 {
+			checksum += factor[i%2] * int32(sanitized[i]-'0')
+		}
+		return (int32(sanitized[isbnVersion13-1]-'0'))-((decimalBase-(checksum%decimalBase))%decimalBase) == 0
+	default:
+		return isISBN(str, isbnVersion10) || isISBN(str, isbnVersion13)
+	}
+}
+
+// isISBN10 checks if the string is an ISBN version 10.
+func isISBN10(str string) bool {
+	return isISBN(str, isbnVersion10)
+}
+
+// isISBN13 checks if the string is an ISBN version 13.
+func isISBN13(str string) bool {
+	return isISBN(str, isbnVersion13)
+}
+
+// isCreditCard checks if the string is a credit card.
+func isCreditCard(str string) bool {
+	sanitized := whiteSpacesAndMinus.ReplaceAllString(str, "")
+	if !rxCreditCard.MatchString(sanitized) {
+		return false
+	}
+
+	number, err := strconv.ParseInt(sanitized, 0, 64)
+	if err != nil {
+		return false
+	}
+	number, lastDigit := number/decimalBase, number%decimalBase
+
+	var sum int64
+	for i := 0; number > 0; i++ {
+		digit := number % decimalBase
+
+		if i%2 == 0 {
+			digit *= 2
+			if digit > decimalBase-1 {
+				digit -= decimalBase - 1
+			}
+		}
+
+		sum += digit
+		number /= decimalBase
+	}
+
+	return (sum+lastDigit)%decimalBase == 0
+}
+
+// isSSN will validate the given string as a U.S. Social Security Number
+func isSSN(str string) bool {
+	if str == "" || len(str) != 11 {
+		return false
+	}
+	return rxSSN.MatchString(str)
+}
+
+// isHexcolor checks if the string is a hexadecimal color.
+func isHexcolor(str string) bool {
+	return rxHexcolor.MatchString(str)
+}
+
+// isRGBcolor checks if the string is a valid RGB color in form rgb(RRR, GGG, BBB).
+func isRGBcolor(str string) bool {
+	return rxRGBcolor.MatchString(str)
+}
+
+// isBase64 checks if a string is base64 encoded.
+func isBase64(str string) bool {
+	_, err := base64.StdEncoding.DecodeString(str)
+
+	return err == nil
 }
