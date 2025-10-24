@@ -47,6 +47,8 @@ var (
 	_ bson.Unmarshaler = (*UUID4)(nil)
 	_ bson.Marshaler   = UUID5("")
 	_ bson.Unmarshaler = (*UUID5)(nil)
+	_ bson.Marshaler   = UUID7("")
+	_ bson.Unmarshaler = (*UUID7)(nil)
 	_ bson.Marshaler   = ISBN("")
 	_ bson.Unmarshaler = (*ISBN)(nil)
 	_ bson.Marshaler   = ISBN10("")
@@ -450,6 +452,25 @@ func (u *UUID5) UnmarshalBSON(data []byte) error {
 		return nil
 	}
 	return fmt.Errorf("couldn't unmarshal bson bytes as UUID5: %w", ErrFormat)
+}
+
+// MarshalBSON document from this value
+func (u UUID7) MarshalBSON() ([]byte, error) {
+	return bson.Marshal(bson.M{"data": u.String()})
+}
+
+// UnmarshalBSON document into this value
+func (u *UUID7) UnmarshalBSON(data []byte) error {
+	var m bson.M
+	if err := bson.Unmarshal(data, &m); err != nil {
+		return err
+	}
+
+	if ud, ok := m["data"].(string); ok {
+		*u = UUID7(ud)
+		return nil
+	}
+	return fmt.Errorf("couldn't unmarshal bson bytes as UUID7: %w", ErrFormat)
 }
 
 // MarshalBSON document from this value

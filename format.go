@@ -118,6 +118,8 @@ func (f *defaultFormats) MapStructureHookFunc() mapstructure.DecodeHookFunc {
 					return UUID4(data), nil
 				case "uuid5":
 					return UUID5(data), nil
+				case "uuid7":
+					return UUID7(data), nil
 				case "hostname":
 					return Hostname(data), nil
 				case "ipv4":

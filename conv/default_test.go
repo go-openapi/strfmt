@@ -80,6 +80,12 @@ func TestUUID5Value(t *testing.T) {
 	assert.Equal(t, value, UUID5Value(&value))
 }
 
+func TestUUID7Value(t *testing.T) {
+	assert.Equal(t, strfmt.UUID7(""), UUID7Value(nil))
+	value := strfmt.UUID7("foo")
+	assert.Equal(t, value, UUID7Value(&value))
+}
+
 func TestISBNValue(t *testing.T) {
 	assert.Equal(t, strfmt.ISBN(""), ISBNValue(nil))
 	value := strfmt.ISBN("foo")

@@ -184,6 +184,21 @@ func UUID5Value(v *strfmt.UUID5) strfmt.UUID5 {
 	return *v
 }
 
+// UUID7 returns a pointer to of the UUID7 value passed in.
+func UUID7(v strfmt.UUID7) *strfmt.UUID7 {
+	return &v
+}
+
+// UUID7Value returns the value of the UUID7 pointer passed in or
+// the default value if the pointer is nil.
+func UUID7Value(v *strfmt.UUID7) strfmt.UUID7 {
+	if v == nil {
+		return strfmt.UUID7("")
+	}
+
+	return *v
+}
+
 // ISBN returns a pointer to of the ISBN value passed in.
 func ISBN(v strfmt.ISBN) *strfmt.ISBN {
 	return &v
