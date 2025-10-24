@@ -346,6 +346,7 @@ const (
 	uuidV3 = 3
 	uuidV4 = 4
 	uuidV5 = 5
+	uuidV7 = 7
 )
 
 // IsUUID3 returns true is the string matches a UUID v3, upper case is allowed
@@ -364,6 +365,12 @@ func IsUUID4(str string) bool {
 func IsUUID5(str string) bool {
 	id, err := uuid.Parse(str)
 	return err == nil && id.Version() == uuid.Version(uuidV5)
+}
+
+// IsUUID7 returns true is the string matches a UUID v7, upper case is allowed
+func IsUUID7(str string) bool {
+	id, err := uuid.Parse(str)
+	return err == nil && id.Version() == uuid.Version(uuidV7)
 }
 
 // IsEmail validates an email address.
@@ -394,6 +401,7 @@ func init() {
 	//   - uuid3
 	//   - uuid4
 	//   - uuid5
+	//   - uuid7
 	u := URI("")
 	Default.Add("uri", &u, isRequestURI)
 
@@ -426,6 +434,9 @@ func init() {
 
 	uid5 := UUID5("")
 	Default.Add("uuid5", &uid5, IsUUID5)
+
+	uid7 := UUID7("")
+	Default.Add("uuid7", &uid7, IsUUID7)
 
 	isbn := ISBN("")
 	Default.Add("isbn", &isbn, func(str string) bool { return isISBN10(str) || isISBN13(str) })
@@ -1316,6 +1327,78 @@ func (u *UUID5) DeepCopy() *UUID5 {
 		return nil
 	}
 	out := new(UUID5)
+	u.DeepCopyInto(out)
+	return out
+}
+
+// UUID7 represents a uuid7 string format
+//
+// swagger:strfmt uuid7
+type UUID7 string
+
+// MarshalText turns this instance into text
+func (u UUID7) MarshalText() ([]byte, error) {
+	return []byte(string(u)), nil
+}
+
+// UnmarshalText hydrates this instance from text
+func (u *UUID7) UnmarshalText(data []byte) error { // validation is performed later on
+	*u = UUID7(string(data))
+	return nil
+}
+
+// Scan read a value from a database driver
+func (u *UUID7) Scan(raw any) error {
+	switch v := raw.(type) {
+	case []byte:
+		*u = UUID7(string(v))
+	case string:
+		*u = UUID7(v)
+	default:
+		return fmt.Errorf("cannot sql.Scan() strfmt.UUID7 from: %#v: %w", v, ErrFormat)
+	}
+
+	return nil
+}
+
+// Value converts a value to a database driver value
+func (u UUID7) Value() (driver.Value, error) {
+	return driver.Value(string(u)), nil
+}
+
+func (u UUID7) String() string {
+	return string(u)
+}
+
+// MarshalJSON returns the UUID as JSON
+func (u UUID7) MarshalJSON() ([]byte, error) {
+	return json.Marshal(string(u))
+}
+
+// UnmarshalJSON sets the UUID from JSON
+func (u *UUID7) UnmarshalJSON(data []byte) error {
+	if string(data) == jsonNull {
+		return nil
+	}
+	var ustr string
+	if err := json.Unmarshal(data, &ustr); err != nil {
+		return err
+	}
+	*u = UUID7(ustr)
+	return nil
+}
+
+// DeepCopyInto copies the receiver and writes its value into out.
+func (u *UUID7) DeepCopyInto(out *UUID7) {
+	*out = *u
+}
+
+// DeepCopy copies the receiver into a new UUID7.
+func (u *UUID7) DeepCopy() *UUID7 {
+	if u == nil {
+		return nil
+	}
+	out := new(UUID7)
 	u.DeepCopyInto(out)
 	return out
 }

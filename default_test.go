@@ -372,6 +372,48 @@ func TestFormatUUID5(t *testing.T) {
 	assert.Equal(t, UUID5(""), uuidZero)
 }
 
+func validUUID7s() []string {
+	other7 := uuid.Must(uuid.NewV7())
+
+	return []string{
+		other7.String(),
+		strings.ReplaceAll(other7.String(), "-", ""),
+	}
+}
+
+func invalidUUID7s() []string {
+	other3 := uuid.NewMD5(uuid.NameSpaceURL, []byte("somewhere.com"))
+	other4 := uuid.Must(uuid.NewRandom())
+	other5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
+
+	return []string{
+		"not-a-uuid",
+		other3.String(),
+		other4.String(),
+		strings.ReplaceAll(other3.String(), "-", ""),
+		strings.ReplaceAll(other4.String(), "-", ""),
+		strings.Replace(other3.String(), "-", "", 2),
+		strings.Replace(other4.String(), "-", "", 2),
+		strings.Replace(other5.String(), "-", "", 2),
+	}
+}
+
+func TestFormatUUID7(t *testing.T) {
+	first7 := uuid.Must(uuid.NewV7())
+	str := first7.String()
+	uuid7 := UUID7(str)
+	testStringFormat(t, &uuid7, "uuid7", str,
+		validUUID7s(),
+		invalidUUID7s(),
+	)
+
+	// special case for zero UUID
+	var uuidZero UUID7
+	err := uuidZero.UnmarshalJSON([]byte(jsonNull))
+	require.NoError(t, err)
+	assert.Equal(t, UUID7(""), uuidZero)
+}
+
 func validUUIDs() []string {
 	other3 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
 	other4 := uuid.Must(uuid.NewRandom())
@@ -816,6 +858,23 @@ func TestDeepCopyUUID5(t *testing.T) {
 	assert.Equal(t, in, out2)
 
 	var inNil *UUID5
+	out3 := inNil.DeepCopy()
+	assert.Nil(t, out3)
+}
+
+func TestDeepCopyUUID7(t *testing.T) {
+	first7 := uuid.Must(uuid.NewV7())
+	uuid7 := UUID7(first7.String())
+	in := &uuid7
+
+	out := new(UUID7)
+	in.DeepCopyInto(out)
+	assert.Equal(t, in, out)
+
+	out2 := in.DeepCopy()
+	assert.Equal(t, in, out2)
+
+	var inNil *UUID7
 	out3 := inNil.DeepCopy()
 	assert.Nil(t, out3)
 }

@@ -203,6 +203,16 @@ func TestFormatBSON(t *testing.T) {
 		)
 	})
 
+	t.Run("with UUID7", func(t *testing.T) {
+		first7 := uuid.Must(uuid.NewV7())
+		str := first7.String()
+		uuid7 := UUID7(str)
+		testBSONStringFormat(t, &uuid7, "uuid7", str,
+			validUUID7s(),
+			invalidUUID7s(),
+		)
+	})
+
 	t.Run("with UUID", func(t *testing.T) {
 		first5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhere.com"))
 		other5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
