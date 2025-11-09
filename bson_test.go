@@ -6,8 +6,8 @@ package strfmt
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/go-openapi/testify/v2/assert"
+	"github.com/go-openapi/testify/v2/require"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
