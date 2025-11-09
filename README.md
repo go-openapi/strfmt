@@ -86,3 +86,7 @@ List of defined types:
 - [UUID5](https://www.rfc-editor.org/rfc/rfc9562.html#name-uuid-version-5)
 - [UUID7](https://www.rfc-editor.org/rfc/rfc9562.html#name-uuid-version-7)
 - [ULID](https://github.com/ulid/spec)
+
+## Licensing
+
+This library ships under the [SPDX-License-Identifier: Apache-2.0](./LICENSE).

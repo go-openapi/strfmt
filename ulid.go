@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2015-2025 go-swagger maintainers
+// SPDX-License-Identifier: Apache-2.0
+
 package strfmt
 
 import (
@@ -27,12 +30,12 @@ type ULID struct {
 
 var (
 	ulidEntropyPool = sync.Pool{
-		New: func() interface{} {
+		New: func() any {
 			return cryptorand.Reader
 		},
 	}
 
-	ULIDScanDefaultFunc = func(raw interface{}) (ULID, error) {
+	ULIDScanDefaultFunc = func(raw any) (ULID, error) {
 		u := NewULIDZero()
 		switch x := raw.(type) {
 		case nil:
@@ -110,7 +113,7 @@ func NewULID() (ULID, error) {
 }
 
 // GetULID returns underlying instance of ULID
-func (u *ULID) GetULID() interface{} {
+func (u *ULID) GetULID() any {
 	return u.ULID
 }
 
@@ -125,7 +128,7 @@ func (u *ULID) UnmarshalText(data []byte) error { // validation is performed lat
 }
 
 // Scan reads a value from a database driver
-func (u *ULID) Scan(raw interface{}) error {
+func (u *ULID) Scan(raw any) error {
 	ul, err := ULIDScanOverrideFunc(raw)
 	if err == nil {
 		*u = ul
