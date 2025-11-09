@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2015-2025 go-swagger maintainers
+// SPDX-License-Identifier: Apache-2.0
+
 package strfmt
 
 import (
@@ -155,7 +158,7 @@ func TestFormatULID_Scan(t *testing.T) {
 		ulid2, err := ParseULID(testUlidAlt)
 		require.NoError(t, err)
 
-		ULIDScanOverrideFunc = func(raw interface{}) (ULID, error) {
+		ULIDScanOverrideFunc = func(raw any) (ULID, error) {
 			u := NewULIDZero()
 			switch x := raw.(type) {
 			case [16]byte:
