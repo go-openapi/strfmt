@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/go-openapi/strfmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/go-openapi/testify/v2/assert"
+	"github.com/go-openapi/testify/v2/require"
 )
 
 const testUlid = string("01EYXZVGBHG26MFTG4JWR4K558")
