@@ -7,9 +7,9 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/oklog/ulid v1.3.1
 	go.mongodb.org/mongo-driver v1.17.6
-	golang.org/x/net v0.46.0
+	golang.org/x/net v0.47.0
 )
 
-require golang.org/x/text v0.30.0 // indirect
+require golang.org/x/text v0.31.0 // indirect
 
 go 1.24.0
