@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/oklog/ulid"
+	"github.com/oklog/ulid/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/bsontype"
 	bsonprim "go.mongodb.org/mongo-driver/bson/primitive"
