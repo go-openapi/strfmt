@@ -43,14 +43,12 @@ func TestDate(t *testing.T) {
 	err = pp.UnmarshalJSON([]byte(`"1972/01/01"`))
 	require.Error(t, err)
 
-	b, err := pp.MarshalJSON()
-	require.NoError(t, err)
-	assert.Equal(t, bj, b)
+	assert.JSONMarshalAsT(t, string(bj), pp)
 
 	var dateZero Date
 	err = dateZero.UnmarshalJSON([]byte(jsonNull))
 	require.NoError(t, err)
-	assert.Equal(t, Date{}, dateZero)
+	assert.EqualT(t, Date{}, dateZero)
 }
 
 func TestDate_Scan(t *testing.T) {
@@ -61,13 +59,13 @@ func TestDate_Scan(t *testing.T) {
 	for _, value := range values {
 		result := Date{}
 		_ = (&result).Scan(value)
-		assert.Equal(t, date, result, "value: %#v", value)
+		assert.EqualT(t, date, result, "value: %#v", value)
 	}
 
 	dd := Date{}
 	err := dd.Scan(nil)
 	require.NoError(t, err)
-	assert.Equal(t, Date{}, dd)
+	assert.EqualT(t, Date{}, dd)
 
 	err = dd.Scan(19700101)
 	require.Error(t, err)

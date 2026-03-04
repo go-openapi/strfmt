@@ -523,9 +523,7 @@ func TestFormatBase64(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, expected, subj2)
 
-	b, err = subj2.MarshalJSON()
-	require.NoError(t, err)
-	assert.Equal(t, bj, b)
+	assert.JSONMarshalAsT(t, string(bj), subj2)
 
 	testValid(t, "byte", str)
 	testInvalid(t, "byte", "ZWxpemFiZXRocG9zZXk") // missing pad char

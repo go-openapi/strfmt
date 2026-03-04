@@ -50,9 +50,7 @@ func TestDuration(t *testing.T) {
 	err = pp.UnmarshalJSON([]byte(`"12 y"`))
 	require.Error(t, err)
 
-	b, err = pp.MarshalJSON()
-	require.NoError(t, err)
-	assert.Equal(t, bj, b)
+	assert.JSONMarshalAsT(t, string(bj), pp)
 }
 
 func testDurationParser(t *testing.T, toParse string, expected time.Duration) {

@@ -30,7 +30,7 @@ func TestBSONDate(t *testing.T) {
 	var dateCopy Date
 	err = bson.Unmarshal(bsonData, &dateCopy)
 	require.NoError(t, err)
-	assert.Equal(t, dateOriginal, dateCopy)
+	assert.EqualT(t, dateOriginal, dateCopy)
 }
 
 func TestBSONBase64(t *testing.T) {
@@ -70,7 +70,7 @@ func TestBSONDateTime(t *testing.T) {
 		err = bson.Unmarshal(bsonData, &dtCopy)
 		require.NoError(t, err)
 		// BSON DateTime type loses timezone information, so compare UTC()
-		assert.Equal(t, time.Time(dt).UTC(), time.Time(dtCopy).UTC())
+		assert.EqualT(t, time.Time(dt).UTC(), time.Time(dtCopy).UTC())
 
 		// Check value marshaling explicitly
 		m := bson.M{"data": dt}
@@ -83,7 +83,7 @@ func TestBSONDateTime(t *testing.T) {
 
 		data, ok := m["data"].(DateTime)
 		assert.TrueT(t, ok)
-		assert.Equal(t, time.Time(dt).UTC(), time.Time(data).UTC())
+		assert.EqualT(t, time.Time(dt).UTC(), time.Time(data).UTC())
 	}
 }
 

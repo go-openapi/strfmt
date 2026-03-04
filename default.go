@@ -465,7 +465,7 @@ func init() { //nolint:gochecknoinits // registers all default string formats in
 
 // Base64 represents a base64 encoded string, using URLEncoding alphabet.
 //
-// swagger:[strfmt] byte.
+// swagger:strfmt byte.
 type Base64 []byte
 
 // MarshalText turns this instance into text.
@@ -559,7 +559,7 @@ func (b *Base64) DeepCopy() *Base64 {
 
 // URI represents the uri string format as specified by the [json] schema spec.
 //
-// swagger:[strfmt] uri.
+// swagger:strfmt uri.
 type URI string
 
 // MarshalText turns this instance into text.
@@ -628,7 +628,7 @@ func (u *URI) DeepCopy() *URI {
 
 // Email represents the email string format as specified by the [json] schema spec.
 //
-// swagger:[strfmt] email.
+// swagger:strfmt email.
 type Email string
 
 // MarshalText turns this instance into text.
@@ -697,7 +697,7 @@ func (e *Email) DeepCopy() *Email {
 
 // Hostname represents the hostname string format as specified by the [json] schema spec.
 //
-// swagger:[strfmt] hostname.
+// swagger:strfmt hostname.
 type Hostname string
 
 // MarshalText turns this instance into text.
@@ -766,7 +766,7 @@ func (h *Hostname) DeepCopy() *Hostname {
 
 // IPv4 represents an IP v4 address.
 //
-// swagger:[strfmt] ipv4.
+// swagger:strfmt ipv4.
 type IPv4 string
 
 // MarshalText turns this instance into text.
@@ -835,7 +835,7 @@ func (u *IPv4) DeepCopy() *IPv4 {
 
 // IPv6 represents an IP v6 address.
 //
-// swagger:[strfmt] ipv6.
+// swagger:strfmt ipv6.
 type IPv6 string
 
 // MarshalText turns this instance into text.
@@ -904,7 +904,7 @@ func (u *IPv6) DeepCopy() *IPv6 {
 
 // CIDR represents a Classless Inter-Domain Routing notation.
 //
-// swagger:[strfmt] cidr.
+// swagger:strfmt cidr.
 type CIDR string
 
 // MarshalText turns this instance into text.
@@ -973,7 +973,7 @@ func (u *CIDR) DeepCopy() *CIDR {
 
 // MAC represents a 48 bit MAC address.
 //
-// swagger:[strfmt] mac.
+// swagger:strfmt mac.
 type MAC string
 
 // MarshalText turns this instance into text.
@@ -1042,7 +1042,7 @@ func (u *MAC) DeepCopy() *MAC {
 
 // UUID represents a [uuid] string format
 //
-// swagger:[strfmt] [uuid]
+// swagger:strfmt uuid.
 type UUID string
 
 // MarshalText turns this instance into text.
@@ -1112,9 +1112,9 @@ func (u *UUID) DeepCopy() *UUID {
 	return out
 }
 
-// UUID3 represents a [uuid]3 string format.
+// UUID3 represents a uuid3 string format.
 //
-// swagger:[strfmt] [uuid]3.
+// swagger:strfmt uuid3.
 type UUID3 string
 
 // MarshalText turns this instance into text.
@@ -1151,12 +1151,12 @@ func (u UUID3) String() string {
 	return string(u)
 }
 
-// MarshalJSON returns the [UUID] as JSON.
+// MarshalJSON returns the [UUID3] as JSON.
 func (u UUID3) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(u))
 }
 
-// UnmarshalJSON sets the [UUID] from JSON.
+// UnmarshalJSON sets the [UUID3] from JSON.
 func (u *UUID3) UnmarshalJSON(data []byte) error {
 	if string(data) == jsonNull {
 		return nil
@@ -1184,9 +1184,9 @@ func (u *UUID3) DeepCopy() *UUID3 {
 	return out
 }
 
-// UUID4 represents a [uuid]4 string format.
+// UUID4 represents a uuid4 string format.
 //
-// swagger:[strfmt] [uuid]4.
+// swagger:strfmt uuid4.
 type UUID4 string
 
 // MarshalText turns this instance into text.
@@ -1223,12 +1223,12 @@ func (u UUID4) String() string {
 	return string(u)
 }
 
-// MarshalJSON returns the [UUID] as JSON.
+// MarshalJSON returns the [UUID4] as JSON.
 func (u UUID4) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(u))
 }
 
-// UnmarshalJSON sets the [UUID] from JSON.
+// UnmarshalJSON sets the [UUID4] from JSON.
 func (u *UUID4) UnmarshalJSON(data []byte) error {
 	if string(data) == jsonNull {
 		return nil
@@ -1246,7 +1246,7 @@ func (u *UUID4) DeepCopyInto(out *UUID4) {
 	*out = *u
 }
 
-// DeepCopy copies the receiver into a new [UUID]4.
+// DeepCopy copies the receiver into a new UUID4.
 func (u *UUID4) DeepCopy() *UUID4 {
 	if u == nil {
 		return nil
@@ -1256,9 +1256,9 @@ func (u *UUID4) DeepCopy() *UUID4 {
 	return out
 }
 
-// UUID5 represents a [uuid]5 string format.
+// UUID5 represents a uuid5 string format.
 //
-// swagger:[strfmt] [uuid]5.
+// swagger:strfmt uuid5.
 type UUID5 string
 
 // MarshalText turns this instance into text.
@@ -1295,12 +1295,12 @@ func (u UUID5) String() string {
 	return string(u)
 }
 
-// MarshalJSON returns the [UUID] as JSON.
+// MarshalJSON returns the [UUID5] as JSON.
 func (u UUID5) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(u))
 }
 
-// UnmarshalJSON sets the [UUID] from JSON.
+// UnmarshalJSON sets the [UUID5] from JSON.
 func (u *UUID5) UnmarshalJSON(data []byte) error {
 	if string(data) == jsonNull {
 		return nil
@@ -1318,7 +1318,7 @@ func (u *UUID5) DeepCopyInto(out *UUID5) {
 	*out = *u
 }
 
-// DeepCopy copies the receiver into a new [UUID]5.
+// DeepCopy copies the receiver into a new [UUID5].
 func (u *UUID5) DeepCopy() *UUID5 {
 	if u == nil {
 		return nil
@@ -1328,9 +1328,9 @@ func (u *UUID5) DeepCopy() *UUID5 {
 	return out
 }
 
-// UUID7 represents a [uuid]7 string format.
+// UUID7 represents a uuid7 string format.
 //
-// swagger:[strfmt] [uuid]7.
+// swagger:strfmt uuid7.
 type UUID7 string
 
 // MarshalText turns this instance into text.
@@ -1367,12 +1367,12 @@ func (u UUID7) String() string {
 	return string(u)
 }
 
-// MarshalJSON returns the [UUID] as JSON.
+// MarshalJSON returns the [UUID7] as JSON.
 func (u UUID7) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(u))
 }
 
-// UnmarshalJSON sets the [UUID] from JSON.
+// UnmarshalJSON sets the [UUID7] from JSON.
 func (u *UUID7) UnmarshalJSON(data []byte) error {
 	if string(data) == jsonNull {
 		return nil
@@ -1402,7 +1402,7 @@ func (u *UUID7) DeepCopy() *UUID7 {
 
 // ISBN represents an isbn string format.
 //
-// swagger:[strfmt] isbn.
+// swagger:strfmt isbn.
 type ISBN string
 
 // MarshalText turns this instance into text.
@@ -1474,7 +1474,7 @@ func (u *ISBN) DeepCopy() *ISBN {
 
 // ISBN10 represents an isbn 10 string format.
 //
-// swagger:[strfmt] isbn10.
+// swagger:strfmt isbn10.
 type ISBN10 string
 
 // MarshalText turns this instance into text.
@@ -1546,7 +1546,7 @@ func (u *ISBN10) DeepCopy() *ISBN10 {
 
 // ISBN13 represents an isbn 13 string format.
 //
-// swagger:[strfmt] isbn13.
+// swagger:strfmt isbn13.
 type ISBN13 string
 
 // MarshalText turns this instance into text.
@@ -1618,7 +1618,7 @@ func (u *ISBN13) DeepCopy() *ISBN13 {
 
 // CreditCard represents a credit card string format.
 //
-// swagger:[strfmt] creditcard.
+// swagger:strfmt creditcard.
 type CreditCard string
 
 // MarshalText turns this instance into text.
@@ -1690,7 +1690,7 @@ func (u *CreditCard) DeepCopy() *CreditCard {
 
 // SSN represents a social security string format.
 //
-// swagger:[strfmt] ssn.
+// swagger:strfmt ssn.
 type SSN string
 
 // MarshalText turns this instance into text.
@@ -1762,7 +1762,7 @@ func (u *SSN) DeepCopy() *SSN {
 
 // HexColor represents a hex color string format.
 //
-// swagger:[strfmt] hexcolor.
+// swagger:strfmt hexcolor.
 type HexColor string
 
 // MarshalText turns this instance into text.
@@ -1834,7 +1834,7 @@ func (h *HexColor) DeepCopy() *HexColor {
 
 // RGBColor represents a RGB color string format.
 //
-// swagger:[strfmt] rgbcolor.
+// swagger:strfmt rgbcolor.
 type RGBColor string
 
 // MarshalText turns this instance into text.
@@ -1907,7 +1907,7 @@ func (r *RGBColor) DeepCopy() *RGBColor {
 // Password represents a password.
 // This has no validations and is mainly used as a marker for UI components.
 //
-// swagger:[strfmt] password.
+// swagger:strfmt password.
 type Password string
 
 // MarshalText turns this instance into text.

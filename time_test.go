@@ -110,7 +110,7 @@ func TestParseDateTime_fullCycle(t *testing.T) {
 		pp = NewDateTime()
 		err = pp.Scan(mt)
 		require.NoError(t, err)
-		assert.Equal(t, DateTime(example.time), pp)
+		assert.EqualT(t, DateTime(example.time), pp)
 	}
 }
 
@@ -164,10 +164,7 @@ func TestDateTime_UnmarshalText(t *testing.T) {
 func TestDateTime_UnmarshalJSON(t *testing.T) {
 	for caseNum, example := range testCases {
 		t.Logf("Case #%d", caseNum)
-		pp := NewDateTime()
-		err := pp.UnmarshalJSON(esc(example.in))
-		require.NoError(t, err)
-		assert.EqualValues(t, example.time, pp)
+		assert.JSONUnmarshalAsT(t, DateTime(example.time), string(esc(example.in)))
 	}
 
 	// Check UnmarshalJSON failure with no lexed items
@@ -206,9 +203,7 @@ func TestDateTime_MarshalJSON(t *testing.T) {
 	for caseNum, example := range testCases {
 		t.Logf("Case #%d", caseNum)
 		dt := DateTime(example.time)
-		bb, err := dt.MarshalJSON()
-		require.NoError(t, err)
-		assert.Equal(t, esc([]byte(example.str)), bb)
+		assert.JSONMarshalAsT(t, string(esc([]byte(example.str))), dt)
 	}
 }
 
@@ -224,9 +219,7 @@ func TestDateTime_MarshalJSON_Override(t *testing.T) {
 	for caseNum, example := range testCases {
 		t.Logf("Case #%d", caseNum)
 		dt := DateTime(example.time.UTC())
-		bb, err := dt.MarshalJSON()
-		require.NoError(t, err)
-		assert.Equal(t, esc([]byte(example.utcStr)), bb)
+		assert.JSONMarshalAsT(t, string(esc([]byte(example.utcStr))), dt)
 	}
 }
 
@@ -237,17 +230,17 @@ func TestDateTime_Scan(t *testing.T) {
 		pp := NewDateTime()
 		err := pp.Scan(example.in)
 		require.NoError(t, err)
-		assert.Equal(t, DateTime(example.time), pp)
+		assert.EqualT(t, DateTime(example.time), pp)
 
 		pp = NewDateTime()
 		err = pp.Scan(string(example.in))
 		require.NoError(t, err)
-		assert.Equal(t, DateTime(example.time), pp)
+		assert.EqualT(t, DateTime(example.time), pp)
 
 		pp = NewDateTime()
 		err = pp.Scan(example.time)
 		require.NoError(t, err)
-		assert.Equal(t, DateTime(example.time), pp)
+		assert.EqualT(t, DateTime(example.time), pp)
 	}
 }
 
@@ -259,11 +252,11 @@ func TestDateTime_Scan_Failed(t *testing.T) {
 	require.NoError(t, err)
 	// Zero values differ...
 	// assert.Equal(t, zero, pp)
-	assert.Equal(t, DateTime{}, pp)
+	assert.EqualT(t, DateTime{}, pp)
 
 	err = pp.Scan("")
 	require.NoError(t, err)
-	assert.Equal(t, zero, pp)
+	assert.EqualT(t, zero, pp)
 
 	err = pp.Scan(int64(0))
 	require.Error(t, err)

@@ -21,7 +21,7 @@ func IsBSONObjectID(str string) bool {
 	return err == nil
 }
 
-// ObjectId represents a BSON object ID (alias to go.mongodb.org/mongo-driver/[bson]/primitive.ObjectID).
+// ObjectId represents a BSON object ID (alias to [primitive.ObjectID]).
 //
 // swagger:[strfmt] bsonobjectid.
 type ObjectId bsonprim.ObjectID //nolint:revive

@@ -71,9 +71,7 @@ func TestFormatULID_JSON(t *testing.T) {
 		require.NoError(t, err)
 		assert.EqualT(t, testUlidAlt, ulid.String())
 
-		data, err := ulid.MarshalJSON()
-		require.NoError(t, err)
-		assert.EqualT(t, whatStr, string(data))
+		assert.JSONMarshalAsT(t, whatStr, ulid)
 	})
 	t.Run("null", func(t *testing.T) {
 		t.Parallel()
