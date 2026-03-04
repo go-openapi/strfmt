@@ -14,12 +14,12 @@ import (
 const testUlid = string("01EYXZVGBHG26MFTG4JWR4K558")
 
 func TestULIDValue(t *testing.T) {
-	assert.Equal(t, strfmt.ULID{}, ULIDValue(nil))
+	assert.EqualT(t, strfmt.ULID{}, ULIDValue(nil))
 
 	value := strfmt.ULID{}
 	err := value.UnmarshalText([]byte(testUlid))
 	require.NoError(t, err)
-	assert.Equal(t, value, ULIDValue(&value))
+	assert.EqualT(t, value, ULIDValue(&value))
 
 	ulidRef := ULID(value)
 	assert.Equal(t, &value, ulidRef)

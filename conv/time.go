@@ -5,12 +5,12 @@ package conv
 
 import "github.com/go-openapi/strfmt"
 
-// DateTime returns a pointer to of the DateTime value passed in.
+// DateTime returns a pointer to of the [strfmt.DateTime] value passed in.
 func DateTime(v strfmt.DateTime) *strfmt.DateTime {
 	return &v
 }
 
-// DateTimeValue returns the value of the DateTime pointer passed in or
+// DateTimeValue returns the value of the [strfmt.DateTime] pointer passed in or
 // the default value if the pointer is nil.
 func DateTimeValue(v *strfmt.DateTime) strfmt.DateTime {
 	if v == nil {

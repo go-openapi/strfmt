@@ -101,12 +101,12 @@ func (d *Date) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes value as Date: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (b Base64) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": b.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (b *Base64) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -146,12 +146,12 @@ func (d *Duration) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes value as Date: %w", ErrFormat)
 }
 
-// MarshalBSON renders the DateTime as a BSON document
+// MarshalBSON renders the [DateTime] as a BSON document.
 func (t DateTime) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": t})
 }
 
-// UnmarshalBSON reads the DateTime from a BSON document
+// UnmarshalBSON reads the [DateTime] from a BSON document.
 func (t *DateTime) UnmarshalBSON(data []byte) error {
 	var obj struct {
 		Data DateTime
@@ -170,7 +170,7 @@ func (t *DateTime) UnmarshalBSON(data []byte) error {
 // into a BSON document represented as bytes. The bytes returned must be a valid
 // BSON document if the error is nil.
 //
-// Marshals a DateTime as a bson.TypeDateTime, an int64 representing
+// Marshals a [DateTime] as a bson.[bson.TypeDateTime], an int64 representing
 // milliseconds since epoch.
 func (t DateTime) MarshalBSONValue() (byte, []byte, error) {
 	// UnixNano cannot be used directly, the result of calling UnixNano on the zero
@@ -204,12 +204,12 @@ func (t *DateTime) UnmarshalBSONValue(tpe byte, data []byte) error {
 	return nil
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (u ULID) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": u.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (u *ULID) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -227,12 +227,12 @@ func (u *ULID) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as ULID: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (u URI) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": u.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (u *URI) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -246,12 +246,12 @@ func (u *URI) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as uri: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (e Email) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": e.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (e *Email) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -265,12 +265,12 @@ func (e *Email) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as email: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (h Hostname) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": h.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (h *Hostname) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -284,12 +284,12 @@ func (h *Hostname) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as hostname: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (u IPv4) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": u.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (u *IPv4) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -303,12 +303,12 @@ func (u *IPv4) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as ipv4: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (u IPv6) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": u.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (u *IPv6) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -322,12 +322,12 @@ func (u *IPv6) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as ipv6: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (u CIDR) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": u.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (u *CIDR) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -341,12 +341,12 @@ func (u *CIDR) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as CIDR: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (u MAC) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": u.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (u *MAC) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -360,12 +360,12 @@ func (u *MAC) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as MAC: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (r Password) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": r.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (r *Password) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -379,12 +379,12 @@ func (r *Password) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as Password: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (u UUID) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": u.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (u *UUID) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -398,12 +398,12 @@ func (u *UUID) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as UUID: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (u UUID3) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": u.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (u *UUID3) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -417,12 +417,12 @@ func (u *UUID3) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as UUID3: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (u UUID4) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": u.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (u *UUID4) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -436,12 +436,12 @@ func (u *UUID4) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as UUID4: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (u UUID5) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": u.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (u *UUID5) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -455,12 +455,12 @@ func (u *UUID5) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as UUID5: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (u UUID7) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": u.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (u *UUID7) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -474,12 +474,12 @@ func (u *UUID7) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as UUID7: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (u ISBN) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": u.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (u *ISBN) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -493,12 +493,12 @@ func (u *ISBN) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as ISBN: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (u ISBN10) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": u.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (u *ISBN10) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -512,12 +512,12 @@ func (u *ISBN10) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as ISBN10: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (u ISBN13) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": u.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (u *ISBN13) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -531,12 +531,12 @@ func (u *ISBN13) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as ISBN13: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (u CreditCard) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": u.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (u *CreditCard) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -550,12 +550,12 @@ func (u *CreditCard) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as CreditCard: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (u SSN) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": u.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (u *SSN) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -569,12 +569,12 @@ func (u *SSN) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as SSN: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (h HexColor) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": h.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (h *HexColor) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -588,12 +588,12 @@ func (h *HexColor) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as HexColor: %w", ErrFormat)
 }
 
-// MarshalBSON document from this value
+// MarshalBSON document from this value.
 func (r RGBColor) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": r.String()})
 }
 
-// UnmarshalBSON document into this value
+// UnmarshalBSON document into this value.
 func (r *RGBColor) UnmarshalBSON(data []byte) error {
 	var m bson.M
 	if err := bson.Unmarshal(data, &m); err != nil {
@@ -607,12 +607,12 @@ func (r *RGBColor) UnmarshalBSON(data []byte) error {
 	return fmt.Errorf("couldn't unmarshal bson bytes as RGBColor: %w", ErrFormat)
 }
 
-// MarshalBSON renders the object id as a BSON document
+// MarshalBSON renders the object id as a BSON document.
 func (id ObjectId) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(bson.M{"data": bson.ObjectID(id)})
 }
 
-// UnmarshalBSON reads the objectId from a BSON document
+// UnmarshalBSON reads the objectId from a BSON document.
 func (id *ObjectId) UnmarshalBSON(data []byte) error {
 	var obj struct {
 		Data bson.ObjectID
