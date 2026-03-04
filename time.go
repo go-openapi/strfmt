@@ -15,9 +15,9 @@ import (
 // UnixZero sets the zero unix UTC timestamp we want to compare against.
 //
 // Unix 0 for an EST timezone is not equivalent to a UTC timezone.
-var UnixZero = time.Unix(0, 0).UTC()
+var UnixZero = time.Unix(0, 0).UTC() //nolint:gochecknoglobals // package-level sentinel value for unix epoch
 
-func init() {
+func init() { //nolint:gochecknoinits // registers datetime format in the default registry
 	dt := DateTime{}
 	Default.Add("datetime", &dt, IsDateTime)
 }
@@ -56,27 +56,37 @@ const (
 	RFC3339Micro = "2006-01-02T15:04:05.000000Z07:00"
 	// RFC3339MicroNoColon represents a ISO8601 format to micro instead of to nano.
 	RFC3339MicroNoColon = "2006-01-02T15:04:05.000000Z0700"
-	// ISO8601LocalTime represents a ISO8601 format to ISO8601 in local time (no timezone)
+	// ISO8601LocalTime represents a ISO8601 format to ISO8601 in local time (no timezone).
 	ISO8601LocalTime = "2006-01-02T15:04:05"
-	// ISO8601TimeWithReducedPrecision represents a ISO8601 format with reduced precision (dropped secs)
+	// ISO8601TimeWithReducedPrecision represents a ISO8601 format with reduced precision (dropped secs).
 	ISO8601TimeWithReducedPrecision = "2006-01-02T15:04Z"
-	// ISO8601TimeWithReducedPrecisionLocaltime represents a ISO8601 format with reduced precision and no timezone (dropped seconds + no timezone)
+	// ISO8601TimeWithReducedPrecisionLocaltime represents a ISO8601 format with reduced precision and no timezone (dropped seconds + no timezone).
 	ISO8601TimeWithReducedPrecisionLocaltime = "2006-01-02T15:04"
 	// ISO8601TimeUniversalSortableDateTimePattern represents a ISO8601 universal sortable date time pattern.
 	ISO8601TimeUniversalSortableDateTimePattern = "2006-01-02 15:04:05"
-	// ISO8601TimeUniversalSortableDateTimePatternShortForm is the short form of [ISO8601TimeUniversalSortableDateTimePattern]
+	// ISO8601TimeUniversalSortableDateTimePatternShortForm is the short form of [ISO8601TimeUniversalSortableDateTimePattern].
 	ISO8601TimeUniversalSortableDateTimePatternShortForm = "2006-01-02"
 	// DateTimePattern pattern to match for the date-time format from http://tools.ietf.org/html/rfc3339#section-5.6
 	DateTimePattern = `^([0-9]{2}):([0-9]{2}):([0-9]{2})(.[0-9]+)?(z|([+-][0-9]{2}:[0-9]{2}))$`
 )
 
+//nolint:gochecknoglobals // package-level configuration for datetime parsing and marshaling
 var (
 	rxDateTime = regexp.MustCompile(DateTimePattern)
 
-	// DateTimeFormats is the collection of formats used by [ParseDateTime]()
-	DateTimeFormats = []string{RFC3339Micro, RFC3339MicroNoColon, RFC3339Millis, RFC3339MillisNoColon, time.RFC3339, time.RFC3339Nano, ISO8601LocalTime, ISO8601TimeWithReducedPrecision, ISO8601TimeWithReducedPrecisionLocaltime, ISO8601TimeUniversalSortableDateTimePattern, ISO8601TimeUniversalSortableDateTimePatternShortForm}
+	// DateTimeFormats is the collection of formats used by [ParseDateTime]().
+	DateTimeFormats = []string{
+		RFC3339Micro, RFC3339MicroNoColon,
+		RFC3339Millis, RFC3339MillisNoColon,
+		time.RFC3339, time.RFC3339Nano,
+		ISO8601LocalTime,
+		ISO8601TimeWithReducedPrecision,
+		ISO8601TimeWithReducedPrecisionLocaltime,
+		ISO8601TimeUniversalSortableDateTimePattern,
+		ISO8601TimeUniversalSortableDateTimePatternShortForm,
+	}
 
-	// MarshalFormat sets the time resolution format used for marshaling time (set to milliseconds)
+	// MarshalFormat sets the time resolution format used for marshaling time (set to milliseconds).
 	MarshalFormat = RFC3339Millis
 
 	// NormalizeTimeForMarshal provides a normalization function on time before marshalling (e.g. [time.UTC]).

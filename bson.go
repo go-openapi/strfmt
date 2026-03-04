@@ -10,13 +10,12 @@ import (
 	bsonprim "go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func init() {
+func init() { //nolint:gochecknoinits // registers bsonobjectid format in the default registry
 	var id ObjectId
-	// register this format in the default registry
 	Default.Add("bsonobjectid", &id, IsBSONObjectID)
 }
 
-// IsBSONObjectID returns true when the string is a valid BSON.[ObjectId]
+// IsBSONObjectID returns true when the string is a valid BSON [ObjectId].
 func IsBSONObjectID(str string) bool {
 	_, err := bsonprim.ObjectIDFromHex(str)
 	return err == nil

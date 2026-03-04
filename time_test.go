@@ -13,6 +13,7 @@ import (
 	"github.com/go-openapi/testify/v2/require"
 )
 
+//nolint:gochecknoglobals // test fixtures
 var (
 	p, _ = time.Parse(time.RFC3339Nano, "2011-08-18T19:03:37.000000000+01:00")
 
@@ -81,7 +82,7 @@ func TestParseDateTime_errorCases(t *testing.T) {
 }
 
 // TestParseDateTime tests the full cycle:
-// parsing -> marshalling -> unmarshalling / scanning
+// parsing -> marshalling -> unmarshalling / scanning.
 func TestParseDateTime_fullCycle(t *testing.T) {
 	for caseNum, example := range testCases {
 		t.Logf("Case #%d", caseNum)

@@ -83,9 +83,9 @@ func invalidHostnames() []string {
 		"www.ex;ample.org",
 		"www.example_underscored.org",
 		// top-level domains too short
-		"www.詹姆斯.x",
+		"www.詹姆斯.x", //nolint:gosmopolitan // testing internationalized hostname validation
 		"a.b.c.d",
-		"www.詹姆斯.XN--1B4C3D", // invalid puny code
+		"www.詹姆斯.XN--1B4C3D", //nolint:gosmopolitan // testing internationalized hostname validation
 		"@www",
 		"a.b.c.é;ö",
 		// these code points are invalid
@@ -178,14 +178,14 @@ func validHostnames() []string {
 		"foo.x04", // valid (last part not a number)
 		"foo.0xz", // valid (last part not a number)
 		// localized hostnames
-		"www.詹姆斯.org",
+		"www.詹姆斯.org", //nolint:gosmopolitan // testing internationalized hostname validation
 		"example.إختبار",
 		"www.élégigôö.org",
-		"www.詹姆斯.london", // long top-level domain
+		"www.詹姆斯.london", //nolint:gosmopolitan // testing internationalized hostname validation
 		// localized top-level domains (valid unicode top-level domains)
 		"www.च.चऒ",
 		"www.कॉम",
-		"www.詹姆斯.xn--11b4c3d", // valid puny code
+		"www.詹姆斯.xn--11b4c3d", //nolint:gosmopolitan // testing internationalized hostname validation
 		"1.1.1.1",             // is a valid IP v4 address
 		"1.1.1.1.",            // is a valid IP v4 address, with trailing dot
 		"1.1.1.06",            // valid IP, with last part octal
@@ -1080,9 +1080,9 @@ func BenchmarkIsHostname(b *testing.B) {
 		"ex=ample.com",
 		"<foo>",
 		"www.example-hyphenated.org",
-		"www.詹姆斯.org",
+		"www.詹姆斯.org", //nolint:gosmopolitan // testing internationalized hostname validation
 		"www.élégigôö.org",
-		"www.詹姆斯.london",
+		"www.詹姆斯.london", //nolint:gosmopolitan // testing internationalized hostname validation
 	}
 	rxHostname := regexp.MustCompile(HostnamePattern)
 

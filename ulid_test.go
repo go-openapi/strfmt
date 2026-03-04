@@ -20,6 +20,7 @@ const (
 	testUlidAlt = string("01EYXZW663G7PYHVSQ8WTMDA67")
 )
 
+//nolint:gochecknoglobals // test fixtures
 var (
 	testUlidOverrideMtx    sync.Mutex
 	testUlidOverrideValMtx sync.Mutex

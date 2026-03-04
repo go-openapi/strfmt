@@ -28,6 +28,7 @@ type ULID struct {
 	ulid.ULID
 }
 
+//nolint:gochecknoglobals // package-level ULID configuration and overridable scan/value functions
 var (
 	ulidEntropyPool = sync.Pool{
 		New: func() any {
@@ -35,6 +36,7 @@ var (
 		},
 	}
 
+	// ULIDScanDefaultFunc is the default implementation for scanning a [ULID] from a database driver value.
 	ULIDScanDefaultFunc = func(raw any) (ULID, error) {
 		u := NewULIDZero()
 		switch x := raw.(type) {
@@ -57,6 +59,7 @@ var (
 	// ULIDScanOverrideFunc allows you to override the Scan method of the [ULID] type.
 	ULIDScanOverrideFunc = ULIDScanDefaultFunc
 
+	// ULIDValueDefaultFunc is the default implementation for converting a [ULID] to a database driver value.
 	ULIDValueDefaultFunc = func(u ULID) (driver.Value, error) {
 		return driver.Value(u.String()), nil
 	}
@@ -65,9 +68,7 @@ var (
 	ULIDValueOverrideFunc = ULIDValueDefaultFunc
 )
 
-func init() {
-	// register formats in the default registry:
-	//   - ulid
+func init() { //nolint:gochecknoinits // registers ulid format in the default registry
 	ulid := ULID{}
 	Default.Add("ulid", &ulid, IsULID)
 }
@@ -80,7 +81,7 @@ func IsULID(str string) bool {
 	return err == nil
 }
 
-// ParseULID parses a string that represents an valid [ULID]
+// ParseULID parses a string that represents an valid [ULID].
 func ParseULID(str string) (ULID, error) {
 	var u ULID
 
@@ -112,7 +113,7 @@ func NewULID() (ULID, error) {
 	return u, nil
 }
 
-// GetULID returns underlying instance of [ULID]
+// GetULID returns underlying instance of [ULID].
 func (u *ULID) GetULID() any {
 	return u.ULID
 }

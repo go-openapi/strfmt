@@ -14,9 +14,8 @@ import (
 	"time"
 )
 
-func init() {
+func init() { //nolint:gochecknoinits // registers duration format in the default registry
 	d := Duration(0)
-	// register this format in the default registry
 	Default.Add("duration", &d, IsDuration)
 }
 
@@ -25,6 +24,7 @@ const (
 	daysInWeek = 7
 )
 
+//nolint:gochecknoglobals // package-level lookup tables for duration parsing
 var (
 	timeUnits = [][]string{
 		{"ns", "nano"},

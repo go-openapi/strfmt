@@ -24,9 +24,10 @@ const (
 	// HostnamePattern http://[json]-schema.org/latest/[json]-schema-validation.html#anchor114.
 	//
 	// Deprecated: this package no longer uses regular expressions to validate hostnames.
-	HostnamePattern = `^([a-zA-Z0-9\p{S}\p{L}]((-?[a-zA-Z0-9\p{S}\p{L}]{0,62})?)|([a-zA-Z0-9\p{S}\p{L}](([a-zA-Z0-9-\p{S}\p{L}]{0,61}[a-zA-Z0-9\p{S}\p{L}])?)(\.)){1,}([a-zA-Z0-9-\p{L}]){2,63})$`
+	HostnamePattern = `^([a-zA-Z0-9\p{S}\p{L}]((-?[a-zA-Z0-9\p{S}\p{L}]{0,62})?)` +
+		`|([a-zA-Z0-9\p{S}\p{L}](([a-zA-Z0-9-\p{S}\p{L}]{0,61}[a-zA-Z0-9\p{S}\p{L}])?)(\.)){1,}([a-zA-Z0-9-\p{L}]){2,63})$`
 
-	// json null type
+	// json null type.
 	jsonNull = "null"
 )
 
@@ -51,12 +52,17 @@ const (
 	// Deprecated: [strfmt] no longer uses regular expressions to validate UUIDs.
 	UUID5Pattern = `(?i)(^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$)|(^[0-9a-f]{12}5[0-9a-f]{3}[89ab][0-9a-f]{15}$)`
 
-	isbn10Pattern   string = "^(?:[0-9]{9}X|[0-9]{10})$"
-	isbn13Pattern   string = "^(?:[0-9]{13})$"
-	usCardPattern   string = "^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|(222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\\d{3})\\d{11}|6[27][0-9]{14})$"
+	isbn10Pattern string = "^(?:[0-9]{9}X|[0-9]{10})$"
+	isbn13Pattern string = "^(?:[0-9]{13})$"
+	usCardPattern string = "^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}" +
+		"|(222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}" +
+		"|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}" +
+		"|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\\d{3})\\d{11}|6[27][0-9]{14})$"
 	ssnPattern      string = `^\d{3}[- ]?\d{2}[- ]?\d{4}$`
 	hexColorPattern string = "^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
-	rgbColorPattern string = "^rgb\\(\\s*(0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*,\\s*(0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*,\\s*(0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*\\)$"
+	rgbColorPattern string = "^rgb\\(\\s*(0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*," +
+		"\\s*(0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*," +
+		"\\s*(0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*\\)$"
 )
 
 const (
@@ -65,6 +71,7 @@ const (
 	decimalBase   = 10
 )
 
+//nolint:gochecknoglobals // package-level compiled patterns and validators
 var (
 	idnaHostChecker = idna.New(
 		idna.ValidateForRegistration(), // shorthand for [idna.StrictDomainName],  [idna.ValidateLabels], [idna.VerifyDNSLength], [idna.BidiRule]
@@ -369,7 +376,7 @@ func IsEmail(str string) bool {
 	return e == nil && addr.Address != ""
 }
 
-func init() {
+func init() { //nolint:gochecknoinits // registers all default string formats in the registry
 	// register formats in the default registry:
 	//   - byte
 	//   - creditcard
@@ -1987,7 +1994,7 @@ func isIPv6(str string) bool {
 	return ip != nil && strings.Contains(str, ":")
 }
 
-// isCIDR checks if the string is an valid CIDR notiation (IPV4 & IPV6)
+// isCIDR checks if the string is a valid CIDR notation (IPV4 & IPV6).
 func isCIDR(str string) bool {
 	_, _, err := net.ParseCIDR(str)
 	return err == nil
@@ -2000,7 +2007,7 @@ func isCIDR(str string) bool {
 // 01-23-45-67-89-ab
 // 01-23-45-67-89-ab-cd-ef
 // 0123.4567.89ab
-// 0123.4567.89ab.cdef
+// 0123.4567.89ab.cdef.
 func isMAC(str string) bool {
 	_, err := net.ParseMAC(str)
 	return err == nil
@@ -2085,7 +2092,7 @@ func isCreditCard(str string) bool {
 	return (sum+lastDigit)%decimalBase == 0
 }
 
-// isSSN will validate the given string as a U.S. Social Security Number
+// isSSN will validate the given string as a U.S. Social Security Number.
 func isSSN(str string) bool {
 	if str == "" || len(str) != 11 {
 		return false

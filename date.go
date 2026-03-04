@@ -10,9 +10,8 @@ import (
 	"time"
 )
 
-func init() {
+func init() { //nolint:gochecknoinits // registers date format in the default registry
 	d := Date{}
-	// register this format in the default registry
 	Default.Add("date", &d, IsDate)
 }
 
