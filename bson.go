@@ -16,18 +16,18 @@ func init() {
 	Default.Add("bsonobjectid", &id, IsBSONObjectID)
 }
 
-// IsBSONObjectID returns true when the string is a valid BSON.ObjectId
+// IsBSONObjectID returns true when the string is a valid BSON.[ObjectId]
 func IsBSONObjectID(str string) bool {
 	_, err := bsonprim.ObjectIDFromHex(str)
 	return err == nil
 }
 
-// ObjectId represents a BSON object ID (alias to go.mongodb.org/mongo-driver/bson/primitive.ObjectID)
+// ObjectId represents a BSON object ID (alias to go.mongodb.org/mongo-driver/[bson]/primitive.ObjectID).
 //
-// swagger:strfmt bsonobjectid
+// swagger:[strfmt] bsonobjectid.
 type ObjectId bsonprim.ObjectID //nolint:revive
 
-// NewObjectId creates a ObjectId from a Hex String
+// NewObjectId creates a [ObjectId] from a Hex String.
 func NewObjectId(hex string) ObjectId { //nolint:revive
 	oid, err := bsonprim.ObjectIDFromHex(hex)
 	if err != nil {
@@ -36,7 +36,7 @@ func NewObjectId(hex string) ObjectId { //nolint:revive
 	return ObjectId(oid)
 }
 
-// MarshalText turns this instance into text
+// MarshalText turns this instance into text.
 func (id ObjectId) MarshalText() ([]byte, error) {
 	oid := bsonprim.ObjectID(id)
 	if oid == bsonprim.NilObjectID {
@@ -45,7 +45,7 @@ func (id ObjectId) MarshalText() ([]byte, error) {
 	return []byte(oid.Hex()), nil
 }
 
-// UnmarshalText hydrates this instance from text
+// UnmarshalText hydrates this instance from text.
 func (id *ObjectId) UnmarshalText(data []byte) error { // validation is performed later on
 	if len(data) == 0 {
 		*id = ObjectId(bsonprim.NilObjectID)
@@ -60,7 +60,7 @@ func (id *ObjectId) UnmarshalText(data []byte) error { // validation is performe
 	return nil
 }
 
-// Scan read a value from a database driver
+// Scan read a value from a database driver.
 func (id *ObjectId) Scan(raw any) error {
 	var data []byte
 	switch v := raw.(type) {
@@ -75,7 +75,7 @@ func (id *ObjectId) Scan(raw any) error {
 	return id.UnmarshalText(data)
 }
 
-// Value converts a value to a database driver value
+// Value converts a value to a database driver value.
 func (id ObjectId) Value() (driver.Value, error) {
 	return driver.Value(bsonprim.ObjectID(id).Hex()), nil
 }
@@ -84,12 +84,12 @@ func (id ObjectId) String() string {
 	return bsonprim.ObjectID(id).Hex()
 }
 
-// MarshalJSON returns the ObjectId as JSON
+// MarshalJSON returns the [ObjectId] as JSON.
 func (id ObjectId) MarshalJSON() ([]byte, error) {
 	return bsonprim.ObjectID(id).MarshalJSON()
 }
 
-// UnmarshalJSON sets the ObjectId from JSON
+// UnmarshalJSON sets the [ObjectId] from JSON.
 func (id *ObjectId) UnmarshalJSON(data []byte) error {
 	var obj bsonprim.ObjectID
 	if err := obj.UnmarshalJSON(data); err != nil {
@@ -104,7 +104,7 @@ func (id *ObjectId) DeepCopyInto(out *ObjectId) {
 	*out = *id
 }
 
-// DeepCopy copies the receiver into a new ObjectId.
+// DeepCopy copies the receiver into a new [ObjectId].
 func (id *ObjectId) DeepCopy() *ObjectId {
 	if id == nil {
 		return nil

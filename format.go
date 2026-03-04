@@ -16,19 +16,19 @@ import (
 	"github.com/go-viper/mapstructure/v2"
 )
 
-// Default is the default formats registry
+// Default is the default formats registry.
 var Default = NewSeededFormats(nil, nil)
 
 // Validator represents a validator for a string format.
 type Validator func(string) bool
 
-// NewFormats creates a new formats registry seeded with the values from the default
+// NewFormats creates a new formats registry seeded with the values from the default.
 func NewFormats() Registry {
 	//nolint:forcetypeassert
 	return NewSeededFormats(Default.(*defaultFormats).data, nil)
 }
 
-// NewSeededFormats creates a new formats registry
+// NewSeededFormats creates a new formats registry.
 func NewSeededFormats(seeds []knownFormat, normalizer NameNormalizer) Registry {
 	if normalizer == nil {
 		normalizer = DefaultNameNormalizer
@@ -50,7 +50,7 @@ type knownFormat struct {
 // NameNormalizer is a function that normalizes a format name.
 type NameNormalizer func(string) string
 
-// DefaultNameNormalizer removes all dashes
+// DefaultNameNormalizer removes all dashes.
 func DefaultNameNormalizer(name string) string {
 	return strings.ReplaceAll(name, "-", "")
 }

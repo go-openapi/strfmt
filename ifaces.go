@@ -13,7 +13,7 @@ import (
 // Format represents a string format.
 //
 // All implementations of Format provide a string representation and text
-// marshaling/unmarshaling interface to be used by encoders (e.g. encoding/json).
+// marshaling/unmarshaling interface to be used by encoders (e.g. encoding/[json]).
 type Format interface {
 	String() string
 	encoding.TextMarshaler

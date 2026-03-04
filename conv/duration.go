@@ -5,12 +5,12 @@ package conv
 
 import "github.com/go-openapi/strfmt"
 
-// Duration returns a pointer to of the Duration value passed in.
+// Duration returns a pointer to of the [strfmt.Duration] value passed in.
 func Duration(v strfmt.Duration) *strfmt.Duration {
 	return &v
 }
 
-// DurationValue returns the value of the Duration pointer passed in or
+// DurationValue returns the value of the [strfmt.Duration] pointer passed in or
 // the default value if the pointer is nil.
 func DurationValue(v *strfmt.Duration) strfmt.Duration {
 	if v == nil {
