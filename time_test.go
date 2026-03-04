@@ -27,7 +27,7 @@ var (
 		{[]byte("2014-12-15T08:00:00"), time.Date(2014, 12, 15, 8, 0, 0, 0, time.UTC), "2014-12-15T08:00:00.000Z", "2014-12-15T08:00:00.000Z"},
 		{[]byte("2014-12-15T08:00"), time.Date(2014, 12, 15, 8, 0, 0, 0, time.UTC), "2014-12-15T08:00:00.000Z", "2014-12-15T08:00:00.000Z"},
 		{[]byte("2014-12-15T08:00Z"), time.Date(2014, 12, 15, 8, 0, 0, 0, time.UTC), "2014-12-15T08:00:00.000Z", "2014-12-15T08:00:00.000Z"},
-		{[]byte("2018-01-28T23:54Z"), time.Date(2018, 01, 28, 23, 54, 0, 0, time.UTC), "2018-01-28T23:54:00.000Z", "2018-01-28T23:54:00.000Z"},
+		{[]byte("2018-01-28T23:54Z"), time.Date(2018, 0o1, 28, 23, 54, 0, 0, time.UTC), "2018-01-28T23:54:00.000Z", "2018-01-28T23:54:00.000Z"},
 		{[]byte("2014-12-15T08:00:00.000Z"), time.Date(2014, 12, 15, 8, 0, 0, 0, time.UTC), "2014-12-15T08:00:00.000Z", "2014-12-15T08:00:00.000Z"},
 		{[]byte("2011-08-18T19:03:37.123000000+01:00"), time.Date(2011, 8, 18, 19, 3, 37, 123*1e6, p.Location()), "2011-08-18T19:03:37.123+01:00", "2011-08-18T18:03:37.123Z"},
 		{[]byte("2011-08-18T19:03:37.123000+0100"), time.Date(2011, 8, 18, 19, 3, 37, 123*1e6, p.Location()), "2011-08-18T19:03:37.123+01:00", "2011-08-18T18:03:37.123Z"},
@@ -45,34 +45,34 @@ func TestNewDateTime(t *testing.T) {
 
 func TestIsZero(t *testing.T) {
 	t.Run("time.Unix(100,5) should not be zero", func(t *testing.T) {
-		assert.False(t, DateTime(time.Unix(100, 5)).IsZero())
+		assert.FalseT(t, DateTime(time.Unix(100, 5)).IsZero())
 	})
 
 	t.Run("NewDateTime() should not be zero", func(t *testing.T) {
 		// time.Unix(0,0) does not produce a true zero value struct,
 		// so this is expected to fail.
-		assert.False(t, NewDateTime().IsZero())
+		assert.FalseT(t, NewDateTime().IsZero())
 	})
 
 	t.Run("MakeDateTime() should be zero", func(t *testing.T) {
-		assert.True(t, MakeDateTime().IsZero())
+		assert.TrueT(t, MakeDateTime().IsZero())
 	})
 
 	t.Run("empty DateTime should be zero", func(t *testing.T) {
 		dt := DateTime{}
-		assert.True(t, dt.IsZero())
+		assert.TrueT(t, dt.IsZero())
 	})
 }
 
 func TestIsUnixZero(t *testing.T) {
 	dt := NewDateTime()
-	assert.True(t, dt.IsUnixZero())
-	assert.NotEqual(t, dt.IsZero(), dt.IsUnixZero())
+	assert.TrueT(t, dt.IsUnixZero())
+	assert.NotEqualT(t, dt.IsZero(), dt.IsUnixZero())
 	// Test configuring UnixZero
 	estLocation := time.FixedZone("EST", int((-5 * time.Hour).Seconds()))
 	estUnixZero := time.Unix(0, 0).In(estLocation)
 	UnixZero = estUnixZero
-	assert.True(t, DateTime(estUnixZero).IsUnixZero())
+	assert.TrueT(t, DateTime(estUnixZero).IsUnixZero())
 }
 
 func TestParseDateTime_errorCases(t *testing.T) {
@@ -96,7 +96,7 @@ func TestParseDateTime_fullCycle(t *testing.T) {
 
 		if example.str != "" {
 			v := IsDateTime(example.str)
-			assert.True(t, v)
+			assert.TrueT(t, v)
 		} else {
 			t.Logf("IsDateTime() skipped for empty testcases")
 		}
@@ -115,27 +115,27 @@ func TestParseDateTime_fullCycle(t *testing.T) {
 
 func TestDateTime_IsDateTime_errorCases(t *testing.T) {
 	v := IsDateTime("zor")
-	assert.False(t, v)
+	assert.FalseT(t, v)
 
 	v = IsDateTime("zorg")
-	assert.False(t, v)
+	assert.FalseT(t, v)
 
 	v = IsDateTime("zorgTx")
-	assert.False(t, v)
+	assert.FalseT(t, v)
 
 	v = IsDateTime("1972-12-31Tx")
-	assert.False(t, v)
+	assert.FalseT(t, v)
 
 	v = IsDateTime("1972-12-31T24:40:00.000Z")
-	assert.False(t, v)
+	assert.FalseT(t, v)
 
 	v = IsDateTime("1972-12-31T23:63:00.000Z")
-	assert.False(t, v)
+	assert.FalseT(t, v)
 
 	v = IsDateTime("1972-12-31T23:59:60.000Z")
-	assert.False(t, v)
-
+	assert.FalseT(t, v)
 }
+
 func TestDateTime_UnmarshalText_errorCases(t *testing.T) {
 	pp := NewDateTime()
 	err := pp.UnmarshalText([]byte("yada"))
@@ -159,6 +159,7 @@ func TestDateTime_UnmarshalText(t *testing.T) {
 
 	}
 }
+
 func TestDateTime_UnmarshalJSON(t *testing.T) {
 	for caseNum, example := range testCases {
 		t.Logf("Case #%d", caseNum)
@@ -199,6 +200,7 @@ func TestDateTime_MarshalText(t *testing.T) {
 		assert.Equal(t, []byte(example.str), mt)
 	}
 }
+
 func TestDateTime_MarshalJSON(t *testing.T) {
 	for caseNum, example := range testCases {
 		t.Logf("Case #%d", caseNum)
@@ -208,6 +210,7 @@ func TestDateTime_MarshalJSON(t *testing.T) {
 		assert.Equal(t, esc([]byte(example.str)), bb)
 	}
 }
+
 func TestDateTime_MarshalJSON_Override(t *testing.T) {
 	oldNormalizeMarshal := NormalizeTimeForMarshal
 	defer func() {
@@ -299,12 +302,12 @@ func TestGobEncodingDateTime(t *testing.T) {
 	dec := gob.NewDecoder(&b)
 	err = dec.Decode(&result)
 	require.NoError(t, err)
-	assert.Equal(t, now.Year(), time.Time(result).Year())
-	assert.Equal(t, now.Month(), time.Time(result).Month())
-	assert.Equal(t, now.Day(), time.Time(result).Day())
-	assert.Equal(t, now.Hour(), time.Time(result).Hour())
-	assert.Equal(t, now.Minute(), time.Time(result).Minute())
-	assert.Equal(t, now.Second(), time.Time(result).Second())
+	assert.EqualT(t, now.Year(), time.Time(result).Year())
+	assert.EqualT(t, now.Month(), time.Time(result).Month())
+	assert.EqualT(t, now.Day(), time.Time(result).Day())
+	assert.EqualT(t, now.Hour(), time.Time(result).Hour())
+	assert.EqualT(t, now.Minute(), time.Time(result).Minute())
+	assert.EqualT(t, now.Second(), time.Time(result).Second())
 }
 
 func TestDateTime_Equal(t *testing.T) {
@@ -314,6 +317,6 @@ func TestDateTime_Equal(t *testing.T) {
 	dt2 := DateTime(time.Time(dt1).Add(time.Second))
 
 	//nolint:gocritic
-	assert.True(t, dt1.Equal(dt1), "DateTime instances should be equal")
-	assert.False(t, dt1.Equal(dt2), "DateTime instances should not be equal")
+	assert.TrueT(t, dt1.Equal(dt1), "DateTime instances should be equal")
+	assert.FalseT(t, dt1.Equal(dt2), "DateTime instances should not be equal")
 }

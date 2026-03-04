@@ -12,12 +12,10 @@ import (
 	"time"
 )
 
-var (
-	// UnixZero sets the zero unix UTC timestamp we want to compare against.
-	//
-	// Unix 0 for an EST timezone is not equivalent to a UTC timezone.
-	UnixZero = time.Unix(0, 0).UTC()
-)
+// UnixZero sets the zero unix UTC timestamp we want to compare against.
+//
+// Unix 0 for an EST timezone is not equivalent to a UTC timezone.
+var UnixZero = time.Unix(0, 0).UTC()
 
 func init() {
 	dt := DateTime{}

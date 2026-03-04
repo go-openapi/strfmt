@@ -35,11 +35,11 @@ func TestDuration(t *testing.T) {
 
 	txt, err := pp.MarshalText()
 	require.NoError(t, err)
-	assert.Equal(t, orig, string(txt))
+	assert.EqualT(t, orig, string(txt))
 
 	err = pp.UnmarshalJSON(bj)
 	require.NoError(t, err)
-	assert.Equal(t, orig, pp.String())
+	assert.EqualT(t, orig, pp.String())
 
 	err = pp.UnmarshalJSON([]byte("yada"))
 	require.Error(t, err)
@@ -60,7 +60,7 @@ func testDurationParser(t *testing.T, toParse string, expected time.Duration) {
 
 	r, e := ParseDuration(toParse)
 	require.NoError(t, e)
-	assert.Equal(t, expected, r)
+	assert.EqualT(t, expected, r)
 }
 
 func TestDurationParser_Failed(t *testing.T) {
@@ -70,7 +70,7 @@ func TestDurationParser_Failed(t *testing.T) {
 
 func TestIsDuration_Failed(t *testing.T) {
 	e := IsDuration("45 weeekks")
-	assert.False(t, e)
+	assert.FalseT(t, e)
 }
 
 func testDurationSQLScanner(t *testing.T, dur time.Duration) {
@@ -81,7 +81,7 @@ func testDurationSQLScanner(t *testing.T, dur time.Duration) {
 		var result Duration
 		err := result.Scan(value)
 		require.NoError(t, err)
-		assert.Equal(t, dur, time.Duration(result))
+		assert.EqualT(t, dur, time.Duration(result))
 
 		// And the other way around
 		resv, erv := result.Value()
@@ -176,23 +176,23 @@ func TestDurationParser(t *testing.T) {
 func TestIsDuration_Caveats(t *testing.T) {
 	// This works too
 	e := IsDuration("45 weeks")
-	assert.True(t, e)
+	assert.TrueT(t, e)
 
 	// This works too
 	e = IsDuration("45 weekz")
-	assert.True(t, e)
+	assert.TrueT(t, e)
 
 	// This works too
 	e = IsDuration("12 hours")
-	assert.True(t, e)
+	assert.TrueT(t, e)
 
 	// This works too
 	e = IsDuration("12 minutes")
-	assert.True(t, e)
+	assert.TrueT(t, e)
 
 	// This does not work
 	e = IsDuration("12 phours")
-	assert.False(t, e)
+	assert.FalseT(t, e)
 }
 
 func TestDeepCopyDuration(t *testing.T) {
@@ -252,7 +252,7 @@ func TestIssue169FractionalDuration(t *testing.T) {
 			t.Run(fmt.Sprintf("invalid fractional duration %s should NOT parse", fractionalDuration.Input), func(t *testing.T) {
 				t.Parallel()
 
-				require.False(t, IsDuration(fractionalDuration.Input))
+				require.FalseT(t, IsDuration(fractionalDuration.Input))
 			})
 
 			continue
@@ -261,16 +261,16 @@ func TestIssue169FractionalDuration(t *testing.T) {
 		t.Run(fmt.Sprintf("fractional duration %s should parse", fractionalDuration.Input), func(t *testing.T) {
 			t.Parallel()
 
-			require.True(t, IsDuration(fractionalDuration.Input))
+			require.TrueT(t, IsDuration(fractionalDuration.Input))
 
 			var d Duration
 			require.NoError(t, d.UnmarshalText([]byte(fractionalDuration.Input)))
 
-			require.Equal(t, fractionalDuration.Expected, d.String())
+			require.EqualT(t, fractionalDuration.Expected, d.String())
 
 			dd, err := ParseDuration(fractionalDuration.Input)
 			require.NoError(t, err)
-			require.Equal(t, fractionalDuration.Expected, dd.String())
+			require.EqualT(t, fractionalDuration.Expected, dd.String())
 		})
 	}
 }

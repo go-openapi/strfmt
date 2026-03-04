@@ -15,11 +15,15 @@ import (
 	"github.com/go-openapi/testify/v2/require"
 )
 
-const testUlid = string("01EYXZVGBHG26MFTG4JWR4K558")
-const testUlidAlt = string("01EYXZW663G7PYHVSQ8WTMDA67")
+const (
+	testUlid    = string("01EYXZVGBHG26MFTG4JWR4K558")
+	testUlidAlt = string("01EYXZW663G7PYHVSQ8WTMDA67")
+)
 
-var testUlidOverrideMtx sync.Mutex
-var testUlidOverrideValMtx sync.Mutex
+var (
+	testUlidOverrideMtx    sync.Mutex
+	testUlidOverrideValMtx sync.Mutex
+)
 
 func TestFormatULID_Text(t *testing.T) {
 	t.Parallel()
@@ -31,7 +35,7 @@ func TestFormatULID_Text(t *testing.T) {
 
 		res, err := ulid.MarshalText()
 		require.NoError(t, err)
-		assert.Equal(t, testUlid, string(res))
+		assert.EqualT(t, testUlid, string(res))
 
 		ulid2, _ := ParseULID(testUlidAlt)
 		require.NoError(t, err)
@@ -39,7 +43,7 @@ func TestFormatULID_Text(t *testing.T) {
 		what := []byte(testUlid)
 		err = ulid2.UnmarshalText(what)
 		require.NoError(t, err)
-		assert.Equal(t, testUlid, ulid2.String())
+		assert.EqualT(t, testUlid, ulid2.String())
 	})
 	t.Run("negative", func(t *testing.T) {
 		t.Parallel()
@@ -64,11 +68,11 @@ func TestFormatULID_JSON(t *testing.T) {
 		what := []byte(whatStr)
 		err = ulid.UnmarshalJSON(what)
 		require.NoError(t, err)
-		assert.Equal(t, testUlidAlt, ulid.String())
+		assert.EqualT(t, testUlidAlt, ulid.String())
 
 		data, err := ulid.MarshalJSON()
 		require.NoError(t, err)
-		assert.Equal(t, whatStr, string(data))
+		assert.EqualT(t, whatStr, string(data))
 	})
 	t.Run("null", func(t *testing.T) {
 		t.Parallel()
@@ -105,12 +109,12 @@ func TestFormatULID_Scan(t *testing.T) {
 
 		err = ulid.Scan(srcUlid)
 		require.NoError(t, err)
-		assert.Equal(t, srcUlid, ulid.String())
+		assert.EqualT(t, srcUlid, ulid.String())
 
 		ulid, _ = ParseULID(testUlid)
 		err = ulid.Scan([]byte(srcUlid))
 		require.NoError(t, err)
-		assert.Equal(t, srcUlid, ulid.String())
+		assert.EqualT(t, srcUlid, ulid.String())
 	})
 	t.Run("db.Scan_Failed", func(t *testing.T) {
 		t.Parallel()
@@ -123,11 +127,11 @@ func TestFormatULID_Scan(t *testing.T) {
 
 		err = ulid.Scan(nil)
 		require.NoError(t, err)
-		assert.Equal(t, zero, ulid)
+		assert.EqualT(t, zero, ulid)
 
 		err = ulid.Scan("")
 		require.NoError(t, err)
-		assert.Equal(t, zero, ulid)
+		assert.EqualT(t, zero, ulid)
 
 		err = ulid.Scan(int64(0))
 		require.Error(t, err)
@@ -174,8 +178,8 @@ func TestFormatULID_Scan(t *testing.T) {
 
 		err = ulid2.Scan(bytes)
 		require.NoError(t, err)
-		assert.Equal(t, ulid2, ulid)
-		assert.Equal(t, ulid2.String(), ulid.String())
+		assert.EqualT(t, ulid2, ulid)
+		assert.EqualT(t, ulid2.String(), ulid.String())
 
 		// check other default cases became unreachable
 		err = ulid2.Scan(testUlid)
@@ -185,7 +189,7 @@ func TestFormatULID_Scan(t *testing.T) {
 		ULIDScanOverrideFunc = ULIDScanDefaultFunc
 		err = ulid2.Scan(testUlid)
 		require.NoError(t, err)
-		assert.Equal(t, testUlid, ulid2.String())
+		assert.EqualT(t, testUlid, ulid2.String())
 	})
 	t.Run("override.Value", func(t *testing.T) {
 		t.Parallel()
@@ -250,8 +254,8 @@ func TestFormatULID_GobEncoding(t *testing.T) {
 	dec := gob.NewDecoder(&b)
 	err = dec.Decode(&result)
 	require.NoError(t, err)
-	assert.Equal(t, ulid, result)
-	assert.Equal(t, ulid.String(), result.String())
+	assert.EqualT(t, ulid, result)
+	assert.EqualT(t, ulid.String(), result.String())
 }
 
 func TestFormatULID_NewULID_and_Equal(t *testing.T) {
@@ -264,12 +268,12 @@ func TestFormatULID_NewULID_and_Equal(t *testing.T) {
 	require.NoError(t, err)
 
 	//nolint:gocritic
-	assert.True(t, ulid1.Equal(ulid1), "ULID instances should be equal")
-	assert.False(t, ulid1.Equal(ulid2), "ULID instances should not be equal")
+	assert.TrueT(t, ulid1.Equal(ulid1), "ULID instances should be equal")
+	assert.FalseT(t, ulid1.Equal(ulid2), "ULID instances should not be equal")
 
 	ulidZero := NewULIDZero()
 	ulidZero2 := NewULIDZero()
-	assert.True(t, ulidZero.Equal(ulidZero2), "ULID instances should be equal")
+	assert.TrueT(t, ulidZero.Equal(ulidZero2), "ULID instances should be equal")
 }
 
 func TestIsULID(t *testing.T) {
@@ -297,11 +301,10 @@ func TestIsULID(t *testing.T) {
 		t.Run(fmt.Sprintf("%s:%t", tc.ulid, tc.expect), func(t *testing.T) {
 			t.Parallel()
 			if tc.expect {
-				assert.True(t, IsULID(tc.ulid))
+				assert.TrueT(t, IsULID(tc.ulid))
 			} else {
-				assert.False(t, IsULID(tc.ulid))
+				assert.FalseT(t, IsULID(tc.ulid))
 			}
 		})
 	}
-
 }

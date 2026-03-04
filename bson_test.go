@@ -18,34 +18,33 @@ func TestBSONObjectId_fullCycle(t *testing.T) {
 	bytes, err := id.MarshalText()
 	require.NoError(t, err)
 
-	require.True(t, IsBSONObjectID(str))
+	require.TrueT(t, IsBSONObjectID(str))
 
 	var idCopy ObjectId
 
 	err = idCopy.Scan(bytes)
 	require.NoError(t, err)
-	assert.Equal(t, id, idCopy)
+	assert.EqualT(t, id, idCopy)
 
 	err = idCopy.UnmarshalText(bytes)
 	require.NoError(t, err)
-	assert.Equal(t, id, idCopy)
+	assert.EqualT(t, id, idCopy)
 
-	require.Equal(t, str, idCopy.String())
+	require.EqualT(t, str, idCopy.String())
 
 	jsonBytes, err := id.MarshalJSON()
 	require.NoError(t, err)
 
 	err = idCopy.UnmarshalJSON(jsonBytes)
 	require.NoError(t, err)
-	assert.Equal(t, id, idCopy)
+	assert.EqualT(t, id, idCopy)
 
 	bsonBytes, err := bson.Marshal(&id)
 	require.NoError(t, err)
 
 	err = bson.Unmarshal(bsonBytes, &idCopy)
 	require.NoError(t, err)
-	assert.Equal(t, id, idCopy)
-
+	assert.EqualT(t, id, idCopy)
 }
 
 func TestDeepCopyObjectId(t *testing.T) {

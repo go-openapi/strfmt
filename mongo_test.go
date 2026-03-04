@@ -55,7 +55,7 @@ func TestBSONDuration(t *testing.T) {
 	var durCopy Duration
 	err = bson.Unmarshal(bsonData, &durCopy)
 	require.NoError(t, err)
-	assert.Equal(t, dur, durCopy)
+	assert.EqualT(t, dur, durCopy)
 }
 
 func TestBSONDateTime(t *testing.T) {
@@ -82,7 +82,7 @@ func TestBSONDateTime(t *testing.T) {
 		require.NoError(t, err)
 
 		data, ok := m["data"].(DateTime)
-		assert.True(t, ok)
+		assert.TrueT(t, ok)
 		assert.Equal(t, time.Time(dt).UTC(), time.Time(data).UTC())
 	}
 }
@@ -99,7 +99,7 @@ func TestBSONULID(t *testing.T) {
 		var ulidUnmarshaled ULID
 		err = bson.Unmarshal(bsonData, &ulidUnmarshaled)
 		require.NoError(t, err)
-		assert.Equal(t, ulid, ulidUnmarshaled)
+		assert.EqualT(t, ulid, ulidUnmarshaled)
 
 		// Check value marshaling explicitly
 		m := bson.M{"data": ulid}
@@ -111,8 +111,8 @@ func TestBSONULID(t *testing.T) {
 		require.NoError(t, err)
 
 		data, ok := m["data"].(ULID)
-		assert.True(t, ok)
-		assert.Equal(t, ulid, data)
+		assert.TrueT(t, ok)
+		assert.EqualT(t, ulid, data)
 	})
 	t.Run("negative", func(t *testing.T) {
 		t.Parallel()
@@ -291,5 +291,5 @@ func testBSONStringFormat(t *testing.T, what testableBSONFormat, format, with st
 	require.NoError(t, err)
 	val := reflect.Indirect(reflect.ValueOf(what))
 	strVal := val.String()
-	assert.Equal(t, with, strVal, "[%s]bson.Unmarshal: expected %v and %v to be equal (reset value) ", format, what, with)
+	assert.EqualT(t, with, strVal, "[%s]bson.Unmarshal: expected %v and %v to be equal (reset value) ", format, what, with)
 }
