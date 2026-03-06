@@ -15,8 +15,10 @@ import (
 	"github.com/go-openapi/testify/v2/require"
 )
 
-var _ sql.Scanner = &Date{}
-var _ driver.Valuer = Date{}
+var (
+	_ sql.Scanner   = &Date{}
+	_ driver.Valuer = Date{}
+)
 
 func TestDate(t *testing.T) {
 	pp := Date{}
