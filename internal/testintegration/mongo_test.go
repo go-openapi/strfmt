@@ -78,9 +78,9 @@ func TestDate(t *testing.T) {
 	doc := bson.M{"_id": "date_test", "value": original}
 	result := roundTrip(t, coll, doc)
 
-	raw, ok := result["value"].(bson.M)
+	raw, ok := result["value"].(bson.D)
 	if !ok {
-		t.Fatalf("expected bson.M for value, got %T", result["value"])
+		t.Fatalf("expected bson.D for value, got %T", result["value"])
 	}
 	rawBytes, err := bson.Marshal(raw)
 	if err != nil {
@@ -122,9 +122,9 @@ func TestDuration(t *testing.T) {
 	doc := bson.M{"_id": "duration_test", "value": original}
 	result := roundTrip(t, coll, doc)
 
-	raw, ok := result["value"].(bson.M)
+	raw, ok := result["value"].(bson.D)
 	if !ok {
-		t.Fatalf("expected bson.M for value, got %T", result["value"])
+		t.Fatalf("expected bson.D for value, got %T", result["value"])
 	}
 	rawBytes, err := bson.Marshal(raw)
 	if err != nil {
@@ -148,9 +148,9 @@ func TestBase64(t *testing.T) {
 	doc := bson.M{"_id": "base64_test", "value": original}
 	result := roundTrip(t, coll, doc)
 
-	raw, ok := result["value"].(bson.M)
+	raw, ok := result["value"].(bson.D)
 	if !ok {
-		t.Fatalf("expected bson.M for value, got %T", result["value"])
+		t.Fatalf("expected bson.D for value, got %T", result["value"])
 	}
 	rawBytes, err := bson.Marshal(raw)
 	if err != nil {
@@ -176,9 +176,9 @@ func TestULID(t *testing.T) {
 	doc := bson.M{"_id": "ulid_test", "value": original}
 	result := roundTrip(t, coll, doc)
 
-	raw, ok := result["value"].(bson.M)
+	raw, ok := result["value"].(bson.D)
 	if !ok {
-		t.Fatalf("expected bson.M for value, got %T", result["value"])
+		t.Fatalf("expected bson.D for value, got %T", result["value"])
 	}
 	rawBytes, err := bson.Marshal(raw)
 	if err != nil {
@@ -221,9 +221,9 @@ func stringFormatRoundTrip(t *testing.T, coll *mongo.Collection, id string, inpu
 	doc := bson.M{"_id": id, "value": input}
 	result := roundTrip(t, coll, doc)
 
-	raw, ok := result["value"].(bson.M)
+	raw, ok := result["value"].(bson.D)
 	if !ok {
-		t.Fatalf("expected bson.M for value, got %T", result["value"])
+		t.Fatalf("expected bson.D for value, got %T", result["value"])
 	}
 	rawBytes, err := bson.Marshal(raw)
 	if err != nil {
