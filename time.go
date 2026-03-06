@@ -15,7 +15,7 @@ import (
 // UnixZero sets the zero unix UTC timestamp we want to compare against.
 //
 // Unix 0 for an EST timezone is not equivalent to a UTC timezone.
-var UnixZero = time.Unix(0, 0).UTC()
+var UnixZero = time.Unix(0, 0).UTC() //nolint:gochecknoglobals
 
 func init() {
 	dt := DateTime{}

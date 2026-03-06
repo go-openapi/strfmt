@@ -21,8 +21,8 @@ const (
 )
 
 var (
-	testUlidOverrideMtx    sync.Mutex
-	testUlidOverrideValMtx sync.Mutex
+	testUlidOverrideMtx    sync.Mutex //nolint:gochecknoglobals
+	testUlidOverrideValMtx sync.Mutex //nolint:gochecknoglobals
 )
 
 func TestFormatULID_Text(t *testing.T) {
