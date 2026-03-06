@@ -10,9 +10,7 @@ import (
 	"time"
 
 	"github.com/oklog/ulid/v2"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsontype"
-	bsonprim "go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 var (
@@ -174,7 +172,7 @@ func (t *DateTime) UnmarshalBSON(data []byte) error {
 //
 // Marshals a DateTime as a bson.TypeDateTime, an int64 representing
 // milliseconds since epoch.
-func (t DateTime) MarshalBSONValue() (bsontype.Type, []byte, error) {
+func (t DateTime) MarshalBSONValue() (byte, []byte, error) {
 	// UnixNano cannot be used directly, the result of calling UnixNano on the zero
 	// Time is undefined. Thats why we use time.Nanosecond() instead.
 
@@ -183,15 +181,15 @@ func (t DateTime) MarshalBSONValue() (bsontype.Type, []byte, error) {
 	buf := make([]byte, bsonDateTimeSize)
 	binary.LittleEndian.PutUint64(buf, uint64(i64)) //nolint:gosec // it's okay to handle negative int64 this way
 
-	return bson.TypeDateTime, buf, nil
+	return byte(bson.TypeDateTime), buf, nil
 }
 
 // UnmarshalBSONValue is an interface implemented by types that can unmarshal a
 // BSON value representation of themselves. The BSON bytes and type can be
 // assumed to be valid. UnmarshalBSONValue must copy the BSON value bytes if it
 // wishes to retain the data after returning.
-func (t *DateTime) UnmarshalBSONValue(tpe bsontype.Type, data []byte) error {
-	if tpe == bson.TypeNull {
+func (t *DateTime) UnmarshalBSONValue(tpe byte, data []byte) error {
+	if tpe == byte(bson.TypeNull) {
 		*t = DateTime{}
 		return nil
 	}
@@ -611,13 +609,13 @@ func (r *RGBColor) UnmarshalBSON(data []byte) error {
 
 // MarshalBSON renders the object id as a BSON document
 func (id ObjectId) MarshalBSON() ([]byte, error) {
-	return bson.Marshal(bson.M{"data": bsonprim.ObjectID(id)})
+	return bson.Marshal(bson.M{"data": bson.ObjectID(id)})
 }
 
 // UnmarshalBSON reads the objectId from a BSON document
 func (id *ObjectId) UnmarshalBSON(data []byte) error {
 	var obj struct {
-		Data bsonprim.ObjectID
+		Data bson.ObjectID
 	}
 	if err := bson.Unmarshal(data, &obj); err != nil {
 		return err
@@ -629,17 +627,17 @@ func (id *ObjectId) UnmarshalBSON(data []byte) error {
 // MarshalBSONValue is an interface implemented by types that can marshal themselves
 // into a BSON document represented as bytes. The bytes returned must be a valid
 // BSON document if the error is nil.
-func (id ObjectId) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	oid := bsonprim.ObjectID(id)
-	return bson.TypeObjectID, oid[:], nil
+func (id ObjectId) MarshalBSONValue() (byte, []byte, error) {
+	oid := bson.ObjectID(id)
+	return byte(bson.TypeObjectID), oid[:], nil
 }
 
 // UnmarshalBSONValue is an interface implemented by types that can unmarshal a
 // BSON value representation of themselves. The BSON bytes and type can be
 // assumed to be valid. UnmarshalBSONValue must copy the BSON value bytes if it
 // wishes to retain the data after returning.
-func (id *ObjectId) UnmarshalBSONValue(_ bsontype.Type, data []byte) error {
-	var oid bsonprim.ObjectID
+func (id *ObjectId) UnmarshalBSONValue(_ byte, data []byte) error {
+	var oid bson.ObjectID
 	copy(oid[:], data)
 	*id = ObjectId(oid)
 	return nil

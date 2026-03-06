@@ -7,7 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 
-	bsonprim "go.mongodb.org/mongo-driver/bson/primitive"
+	bsonprim "go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func init() {
@@ -22,7 +22,7 @@ func IsBSONObjectID(str string) bool {
 	return err == nil
 }
 
-// ObjectId represents a BSON object ID (alias to go.mongodb.org/mongo-driver/bson/primitive.ObjectID)
+// ObjectId represents a BSON object ID (alias to go.mongodb.org/mongo-driver/v2/bson.ObjectID)
 //
 // swagger:strfmt bsonobjectid
 type ObjectId bsonprim.ObjectID //nolint:revive

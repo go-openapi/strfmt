@@ -15,11 +15,15 @@ import (
 	"github.com/go-openapi/testify/v2/require"
 )
 
-const testUlid = string("01EYXZVGBHG26MFTG4JWR4K558")
-const testUlidAlt = string("01EYXZW663G7PYHVSQ8WTMDA67")
+const (
+	testUlid    = string("01EYXZVGBHG26MFTG4JWR4K558")
+	testUlidAlt = string("01EYXZW663G7PYHVSQ8WTMDA67")
+)
 
-var testUlidOverrideMtx sync.Mutex
-var testUlidOverrideValMtx sync.Mutex
+var (
+	testUlidOverrideMtx    sync.Mutex
+	testUlidOverrideValMtx sync.Mutex
+)
 
 func TestFormatULID_Text(t *testing.T) {
 	t.Parallel()
@@ -303,5 +307,4 @@ func TestIsULID(t *testing.T) {
 			}
 		})
 	}
-
 }

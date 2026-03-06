@@ -301,6 +301,7 @@ func invalidUUID4s() []string {
 		strings.Replace(other5.String(), "-", "", 2),
 	}
 }
+
 func TestFormatUUID4(t *testing.T) {
 	first4 := uuid.Must(uuid.NewRandom())
 	other4 := uuid.Must(uuid.NewRandom())
@@ -436,6 +437,7 @@ func invalidUUIDs() []string {
 		strings.Replace(other5.String(), "-", "", 2),
 	}
 }
+
 func TestFormatUUID(t *testing.T) {
 	first5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhere.com"))
 	other5 := uuid.NewSHA1(uuid.NameSpaceURL, []byte("somewhereelse.com"))
@@ -1104,7 +1106,6 @@ func BenchmarkIsHostname(b *testing.B) {
 			}
 		}
 		return valid
-
 	}))
 	b.Run("IsHostname - idna", benchmarkIs(hostnames, IsHostname))
 }
