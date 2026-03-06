@@ -13,10 +13,9 @@ import (
 	"time"
 
 	"github.com/go-openapi/strfmt"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func mongoURI() string {
@@ -29,13 +28,13 @@ func mongoURI() string {
 func setup(t *testing.T) *mongo.Collection {
 	t.Helper()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI()))
+	client, err := mongo.Connect(options.Client().ApplyURI(mongoURI()))
 	if err != nil {
 		t.Fatalf("failed to connect to MongoDB: %v", err)
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 	if err := client.Ping(ctx, nil); err != nil {
 		t.Fatalf("failed to ping MongoDB: %v", err)
@@ -79,9 +78,9 @@ func TestDate(t *testing.T) {
 	doc := bson.M{"_id": "date_test", "value": original}
 	result := roundTrip(t, coll, doc)
 
-	raw, ok := result["value"].(primitive.M)
+	raw, ok := result["value"].(bson.M)
 	if !ok {
-		t.Fatalf("expected primitive.M for value, got %T", result["value"])
+		t.Fatalf("expected bson.M for value, got %T", result["value"])
 	}
 	rawBytes, err := bson.Marshal(raw)
 	if err != nil {
@@ -105,9 +104,9 @@ func TestDateTime(t *testing.T) {
 	result := roundTrip(t, coll, doc)
 
 	// DateTime uses MarshalBSONValue, so MongoDB stores it as a native datetime.
-	dt, ok := result["value"].(primitive.DateTime)
+	dt, ok := result["value"].(bson.DateTime)
 	if !ok {
-		t.Fatalf("expected primitive.DateTime, got %T", result["value"])
+		t.Fatalf("expected bson.DateTime, got %T", result["value"])
 	}
 	got := strfmt.DateTime(dt.Time())
 
@@ -123,9 +122,9 @@ func TestDuration(t *testing.T) {
 	doc := bson.M{"_id": "duration_test", "value": original}
 	result := roundTrip(t, coll, doc)
 
-	raw, ok := result["value"].(primitive.M)
+	raw, ok := result["value"].(bson.M)
 	if !ok {
-		t.Fatalf("expected primitive.M for value, got %T", result["value"])
+		t.Fatalf("expected bson.M for value, got %T", result["value"])
 	}
 	rawBytes, err := bson.Marshal(raw)
 	if err != nil {
@@ -149,9 +148,9 @@ func TestBase64(t *testing.T) {
 	doc := bson.M{"_id": "base64_test", "value": original}
 	result := roundTrip(t, coll, doc)
 
-	raw, ok := result["value"].(primitive.M)
+	raw, ok := result["value"].(bson.M)
 	if !ok {
-		t.Fatalf("expected primitive.M for value, got %T", result["value"])
+		t.Fatalf("expected bson.M for value, got %T", result["value"])
 	}
 	rawBytes, err := bson.Marshal(raw)
 	if err != nil {
@@ -177,9 +176,9 @@ func TestULID(t *testing.T) {
 	doc := bson.M{"_id": "ulid_test", "value": original}
 	result := roundTrip(t, coll, doc)
 
-	raw, ok := result["value"].(primitive.M)
+	raw, ok := result["value"].(bson.M)
 	if !ok {
-		t.Fatalf("expected primitive.M for value, got %T", result["value"])
+		t.Fatalf("expected bson.M for value, got %T", result["value"])
 	}
 	rawBytes, err := bson.Marshal(raw)
 	if err != nil {
@@ -203,9 +202,9 @@ func TestObjectId(t *testing.T) {
 	result := roundTrip(t, coll, doc)
 
 	// ObjectId uses MarshalBSONValue, so MongoDB stores it as a native ObjectID.
-	oid, ok := result["value"].(primitive.ObjectID)
+	oid, ok := result["value"].(bson.ObjectID)
 	if !ok {
-		t.Fatalf("expected primitive.ObjectID, got %T", result["value"])
+		t.Fatalf("expected bson.ObjectID, got %T", result["value"])
 	}
 	got := strfmt.ObjectId(oid)
 
@@ -222,9 +221,9 @@ func stringFormatRoundTrip(t *testing.T, coll *mongo.Collection, id string, inpu
 	doc := bson.M{"_id": id, "value": input}
 	result := roundTrip(t, coll, doc)
 
-	raw, ok := result["value"].(primitive.M)
+	raw, ok := result["value"].(bson.M)
 	if !ok {
-		t.Fatalf("expected primitive.M for value, got %T", result["value"])
+		t.Fatalf("expected bson.M for value, got %T", result["value"])
 	}
 	rawBytes, err := bson.Marshal(raw)
 	if err != nil {
