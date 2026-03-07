@@ -19,6 +19,8 @@ import (
 	"time"
 
 	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/testify/v2/assert"
+	"github.com/go-openapi/testify/v2/require"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -33,16 +35,12 @@ func setupMariaDB(t *testing.T) *sql.DB {
 	t.Helper()
 
 	db, err := sql.Open("mysql", mariadbDSN())
-	if err != nil {
-		t.Fatalf("failed to open MariaDB: %v", err)
-	}
+	require.NoError(t, err)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := db.PingContext(ctx); err != nil {
-		t.Fatalf("failed to ping MariaDB: %v", err)
-	}
+	require.NoError(t, db.PingContext(ctx))
 
 	t.Cleanup(func() {
 		_ = db.Close()
@@ -59,9 +57,8 @@ func createTable(t *testing.T, db *sql.DB, cols ...string) string {
 	ctx := context.Background()
 	table := "test_" + strings.ReplaceAll(t.Name(), "/", "_")
 	ddl := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (id VARCHAR(64) PRIMARY KEY, %s)", table, strings.Join(cols, ", "))
-	if _, err := db.ExecContext(ctx, ddl); err != nil {
-		t.Fatalf("CREATE TABLE failed: %v", err)
-	}
+	_, err := db.ExecContext(ctx, ddl)
+	require.NoError(t, err)
 
 	t.Cleanup(func() {
 		_, _ = db.ExecContext(context.Background(), "DROP TABLE IF EXISTS "+table)
@@ -84,18 +81,17 @@ func TestMariaDB_DateTime_AsString(t *testing.T) {
 	original := strfmt.DateTime(time.Date(2024, 6, 15, 12, 30, 45, 123000000, time.UTC))
 
 	// Insert using Value() — returns RFC3339 string, VARCHAR column accepts it.
-	if _, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "dt1", original); err != nil {
-		t.Fatalf("INSERT failed: %v", err)
-	}
+	_, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "dt1", original)
+	require.NoError(t, err)
 
 	var got strfmt.DateTime
-	if err := db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "dt1").Scan(&got); err != nil {
-		t.Fatalf("SELECT/Scan failed: %v", err)
-	}
+	err = db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "dt1").Scan(&got)
+	require.NoError(t, err)
 
-	if !time.Time(original).UTC().Truncate(time.Millisecond).Equal(time.Time(got).UTC().Truncate(time.Millisecond)) {
-		t.Errorf("DateTime (VARCHAR) roundtrip: got %v, want %v", got, original)
-	}
+	assert.EqualT(t,
+		time.Time(original).UTC().Truncate(time.Millisecond),
+		time.Time(got).UTC().Truncate(time.Millisecond),
+	)
 }
 
 func TestMariaDB_DateTime_NativeDatetime_DefaultFormat(t *testing.T) {
@@ -114,9 +110,7 @@ func TestMariaDB_DateTime_NativeDatetime_DefaultFormat(t *testing.T) {
 	original := strfmt.DateTime(time.Date(2024, 6, 15, 12, 30, 45, 123000000, time.UTC))
 
 	_, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "dt1", original)
-	if err == nil {
-		t.Fatal("expected INSERT to fail with default MarshalFormat, but it succeeded")
-	}
+	require.Error(t, err)
 	t.Logf("confirmed: default MarshalFormat rejected by MariaDB: %v", err)
 }
 
@@ -152,19 +146,18 @@ func TestMariaDB_DateTime_NativeDatetime_LocalTimeFormat(t *testing.T) {
 	original := strfmt.DateTime(time.Date(2024, 6, 15, 12, 30, 45, 0, time.UTC))
 
 	// With ISO8601LocalTime, Value() returns "2024-06-15T12:30:45" — no "Z", accepted by MySQL.
-	if _, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "dt1", original); err != nil {
-		t.Fatalf("INSERT failed: %v", err)
-	}
+	_, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "dt1", original)
+	require.NoError(t, err)
 
 	// With parseTime=true, the driver returns time.Time — Scan() handles this.
 	var got strfmt.DateTime
-	if err := db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "dt1").Scan(&got); err != nil {
-		t.Fatalf("SELECT/Scan failed: %v", err)
-	}
+	err = db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "dt1").Scan(&got)
+	require.NoError(t, err)
 
-	if !time.Time(original).UTC().Truncate(time.Second).Equal(time.Time(got).UTC().Truncate(time.Second)) {
-		t.Errorf("DateTime (DATETIME) roundtrip: got %v, want %v", time.Time(got).UTC(), time.Time(original).UTC())
-	}
+	assert.EqualT(t,
+		time.Time(original).UTC().Truncate(time.Second),
+		time.Time(got).UTC().Truncate(time.Second),
+	)
 }
 
 func TestMariaDB_Date(t *testing.T) {
@@ -175,18 +168,14 @@ func TestMariaDB_Date(t *testing.T) {
 	original := strfmt.Date(time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC))
 
 	// Date.Value() returns "2024-06-15" which MySQL DATE columns accept.
-	if _, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "d1", original); err != nil {
-		t.Fatalf("INSERT failed: %v", err)
-	}
+	_, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "d1", original)
+	require.NoError(t, err)
 
 	var got strfmt.Date
-	if err := db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "d1").Scan(&got); err != nil {
-		t.Fatalf("SELECT/Scan failed: %v", err)
-	}
+	err = db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "d1").Scan(&got)
+	require.NoError(t, err)
 
-	if original.String() != got.String() {
-		t.Errorf("Date roundtrip: got %v, want %v", got, original)
-	}
+	assert.EqualT(t, original.String(), got.String())
 }
 
 func TestMariaDB_Duration(t *testing.T) {
@@ -197,18 +186,14 @@ func TestMariaDB_Duration(t *testing.T) {
 
 	original := strfmt.Duration(42 * time.Second)
 
-	if _, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "dur1", original); err != nil {
-		t.Fatalf("INSERT failed: %v", err)
-	}
+	_, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "dur1", original)
+	require.NoError(t, err)
 
 	var got strfmt.Duration
-	if err := db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "dur1").Scan(&got); err != nil {
-		t.Fatalf("SELECT/Scan failed: %v", err)
-	}
+	err = db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "dur1").Scan(&got)
+	require.NoError(t, err)
 
-	if original != got {
-		t.Errorf("Duration roundtrip: got %v, want %v", got, original)
-	}
+	assert.EqualT(t, original, got)
 }
 
 // stringRoundTrip is a helper for string-based strfmt types stored in VARCHAR columns.
@@ -222,17 +207,13 @@ func stringRoundTrip[T interface {
 	ctx := context.Background()
 	table := createTable(t, db, "value TEXT")
 
-	if _, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "v1", original); err != nil {
-		t.Fatalf("INSERT failed: %v", err)
-	}
+	_, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "v1", original)
+	require.NoError(t, err)
 
-	if err := db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "v1").Scan(got); err != nil {
-		t.Fatalf("SELECT/Scan failed: %v", err)
-	}
+	err = db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "v1").Scan(got)
+	require.NoError(t, err)
 
-	if original.String() != (*got).String() {
-		t.Errorf("roundtrip: got %v, want %v", *got, original)
-	}
+	assert.EqualT(t, original.String(), (*got).String())
 }
 
 func TestMariaDB_URI(t *testing.T) {
@@ -383,18 +364,14 @@ func TestMariaDB_Base64(t *testing.T) {
 	payload := []byte("hello world with special chars: éàü")
 	original := strfmt.Base64(payload)
 
-	if _, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "b64_1", original); err != nil {
-		t.Fatalf("INSERT failed: %v", err)
-	}
+	_, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "b64_1", original)
+	require.NoError(t, err)
 
 	var got strfmt.Base64
-	if err := db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "b64_1").Scan(&got); err != nil {
-		t.Fatalf("SELECT/Scan failed: %v", err)
-	}
+	err = db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "b64_1").Scan(&got)
+	require.NoError(t, err)
 
-	if base64.StdEncoding.EncodeToString(original) != base64.StdEncoding.EncodeToString(got) {
-		t.Errorf("Base64 roundtrip: got %v, want %v", got, original)
-	}
+	assert.EqualT(t, base64.StdEncoding.EncodeToString(original), base64.StdEncoding.EncodeToString(got))
 }
 
 func TestMariaDB_ULID(t *testing.T) {
@@ -403,22 +380,16 @@ func TestMariaDB_ULID(t *testing.T) {
 	table := createTable(t, db, "value VARCHAR(64)")
 
 	original, err := strfmt.ParseULID("01ARZ3NDEKTSV4RRFFQ69G5FAV")
-	if err != nil {
-		t.Fatalf("failed to parse ULID: %v", err)
-	}
+	require.NoError(t, err)
 
-	if _, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "ulid1", original); err != nil {
-		t.Fatalf("INSERT failed: %v", err)
-	}
+	_, err = db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "ulid1", original)
+	require.NoError(t, err)
 
 	var got strfmt.ULID
-	if err := db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "ulid1").Scan(&got); err != nil {
-		t.Fatalf("SELECT/Scan failed: %v", err)
-	}
+	err = db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "ulid1").Scan(&got)
+	require.NoError(t, err)
 
-	if original.String() != got.String() {
-		t.Errorf("ULID roundtrip: got %v, want %v", got, original)
-	}
+	assert.EqualT(t, original.String(), got.String())
 }
 
 func TestMariaDB_ObjectId(t *testing.T) {
@@ -428,16 +399,12 @@ func TestMariaDB_ObjectId(t *testing.T) {
 
 	original := strfmt.NewObjectId("507f1f77bcf86cd799439011")
 
-	if _, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "oid1", original); err != nil {
-		t.Fatalf("INSERT failed: %v", err)
-	}
+	_, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "oid1", original)
+	require.NoError(t, err)
 
 	var got strfmt.ObjectId
-	if err := db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "oid1").Scan(&got); err != nil {
-		t.Fatalf("SELECT/Scan failed: %v", err)
-	}
+	err = db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "oid1").Scan(&got)
+	require.NoError(t, err)
 
-	if original != got {
-		t.Errorf("ObjectId roundtrip: got %v, want %v", got, original)
-	}
+	assert.EqualT(t, original, got)
 }

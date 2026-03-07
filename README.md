@@ -151,7 +151,7 @@ All format types also implement BSON marshaling/unmarshaling for use with MongoD
 >
 > See [#174](https://github.com/go-openapi/strfmt/issues/174) for details.
 
-Integration tests for both MongoDB and MariaDB run in CI to verify database roundtrip
+Integration tests for MongoDB, MariaDB, and PostgreSQL run in CI to verify database roundtrip
 compatibility for all format types. See [`internal/testintegration/`](internal/testintegration/).
 
 ## Change log
