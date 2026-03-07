@@ -61,4 +61,22 @@ jobs:
           MONGODB_URI: mongodb://localhost:27017
           MARIADB_DSN: "strfmt_test:strfmt_test@tcp(localhost:3306)/strfmt_integration_test?parseTime=true&loc=UTC"
           POSTGRESQL_DSN: "postgres://strfmt_test:strfmt_test@localhost:5432/strfmt_integration_test?sslmode=disable"
-        run: go test -tags testintegration -v -count=1 ./...
+        run: >
+          go test -tags testintegration -v -count=1
+          -coverprofile='integration.coverage.ubuntu-latest-stable.out'
+          -covermode=atomic
+          -coverpkg='github.com/go-openapi/strfmt/...,github.com/go-openapi/strfmt/enable/mongodb/...'
+          ./...
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          path: 'internal/testintegration/integration.coverage.ubuntu-latest-stable.out'
+          name: 'integration.coverage.ubuntu-latest-stable'
+          retention-days: 1
+
+  collect-coverage:
+    needs: [integration-test]
+    if: ${{ !cancelled() && needs.integration-test.result == 'success' }}
+    uses: go-openapi/ci-workflows/.github/workflows/collect-coverage.yml@34a5baa33361844b1d2c70cd4548e3cea83529d9 # v0.2.13
+    secrets: inherit
