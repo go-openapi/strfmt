@@ -53,7 +53,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version: stable
 
       - name: Run integration tests
         working-directory: internal/testintegration

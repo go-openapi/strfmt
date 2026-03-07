@@ -24,6 +24,13 @@ You may join the discord community by clicking the invite link on the discord ba
 
 Or join our Slack channel: [![Slack Channel][slack-logo]![slack-badge]][slack-url]
 
+* **2026-03-07** : v0.26.0 **dropped dependency to the mongodb driver**
+  * mongodb users can still use this package without any change
+  * however, we have frozen the back-compatible support for mongodb driver at v2.5.0
+  * users who want to keep-up with future evolutions (possibly incompatible) of this driver
+    can do so by adding a blank import in their program: `import _ "github.com/go-openapi/strfmt/enable/mongodb"`.
+    This will switch the behavior to the actual driver, which remains regularly updated as an independent module.
+
 ## Status
 
 API is stable.
@@ -132,8 +139,9 @@ List of defined types:
 All format types implement the `database/sql` interfaces `sql.Scanner` and `driver.Valuer`,
 so they work out of the box with Go's standard `database/sql` package and any SQL driver.
 
-All format types also implement BSON marshaling/unmarshaling for use with MongoDB
-(via [`go.mongodb.org/mongo-driver/v2`](https://pkg.go.dev/go.mongodb.org/mongo-driver/v2)).
+All format types also implement BSON marshaling/unmarshaling for use with MongoDB.
+By default, a built-in minimal codec is used (compatible with mongo-driver v2.5.0).
+For full driver support, add `import _ "github.com/go-openapi/strfmt/enable/mongodb"`.
 
 > **MySQL / MariaDB caveat for `DateTime`:**
 > The `go-sql-driver/mysql` driver has hard-coded handling for `time.Time` but does not

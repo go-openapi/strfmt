@@ -3,16 +3,17 @@
 
 //go:build testintegration
 
-// Package mongodb_test runs MongoDB integration tests using the default
-// (bsonlite) codec — no enable/mongodb blank import.
-package mongodb_test
+// Package mongodb_enabled_test runs MongoDB integration tests with the real
+// MongoDB driver codec enabled via blank import.
+package mongodb_enabled_test
 
 import (
 	"testing"
 
+	_ "github.com/go-openapi/strfmt/enable/mongodb"
 	"github.com/go-openapi/strfmt/internal/testintegration/mongotest"
 )
 
-func TestMongoDBLiteCodec(t *testing.T) {
+func TestMongoDBDriverCodec(t *testing.T) {
 	mongotest.RunAllTests(t)
 }

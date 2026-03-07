@@ -4,6 +4,7 @@ go 1.24.0
 
 require (
 	github.com/go-openapi/strfmt v0.25.0
+	github.com/go-openapi/strfmt/enable/mongodb v0.0.0
 	github.com/go-openapi/testify/v2 v2.4.0
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/jackc/pgx/v5 v5.8.0
@@ -30,4 +31,7 @@ require (
 	golang.org/x/text v0.34.0 // indirect
 )
 
-replace github.com/go-openapi/strfmt => ../..
+replace (
+	github.com/go-openapi/strfmt => ../..
+	github.com/go-openapi/strfmt/enable/mongodb => ../../enable/mongodb
+)

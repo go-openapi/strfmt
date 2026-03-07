@@ -4,7 +4,15 @@
 
 ## Repo structure
 
-This project is organized as a repo with a single go module.
+This project is organized as a mono-repo with multiple go modules:
+
+| Module | Description |
+|--------|-------------|
+| `.` (root) | Core `strfmt` package with all format types |
+| `enable/mongodb` | Blank-import package that replaces the built-in minimal BSON codec with the real MongoDB driver |
+| `internal/testintegration` | Integration tests against real databases (MongoDB, MariaDB, PostgreSQL) |
+
+A `go.work` file at the root ties all modules together for local development.
 
 ## Repo configuration
 
@@ -54,7 +62,7 @@ Coverage threshold status is informative and not blocking.
 This is because the thresholds are difficult to tune and codecov oftentimes reports false negatives
 or may fail to upload coverage.
 
-All tests across `go-openapi` use our fork of `stretchr/strfmt` (this repo): `github.com/go-openapi/strfmt`.
+All tests across `go-openapi` use our fork of `stretchr/testify`: `github.com/go-openapi/testify`.
 This allows for minimal test dependencies.
 
 > **NOTES**
@@ -117,18 +125,19 @@ Reports are centralized in github security reports for code scanning tools.
 
 ## Releases
 
-**For single module repos:**
+A bump release workflow (mono-repo) can be triggered from the github actions UI to cut a release with a few clicks.
 
-A bump release workflow can be triggered from the github actions UI to cut a release with a few clicks.
+The release process updates cross-module dependencies (e.g. `enable/mongodb` → root module)
+before pushing the desired git tag.
 
-The release process is minimalist:
-
-* push a semver tag (i.e v{major}.{minor}.{patch}) to the master branch.
-* the CI handles this to generate a github release with release notes
+It first creates an auto-merged PR that updates the different `go.mod` files,
+then pushes the desired semver tag.
 
 * release notes generator: git-cliff <https://git-cliff.org/docs/>
-* configuration: the `.cliff.toml` is defined as a share configuration on
+* configuration: the `.cliff.toml` is defined as a shared configuration on
   remote repo [`ci-workflows/.cliff.toml`][remote-cliff-config]
+
+Commits and tags pushed by the workflow bot are PGP-signed ("go-openapi[bot]").
 
 Commits from maintainers are preferably PGP-signed.
 
@@ -139,18 +148,6 @@ We want our releases to show as "verified" on github.
 The tag message introduces the release notes (e.g. a summary of this release).
 
 The release notes generator does not assume that commits are necessarily "conventional commits".
-
-**For mono-repos with multiple modules:**
-
-The release process is slightly different because we need to update cross-module dependencies
-before pushing a tag.
-
-A bump release workflow (mono-repo) can be triggered from the github actions UI to cut a release with a few clicks.
-
-It works with the same input as the one for single module repos, and first creates a PR (auto-merged)
-that updates the different go.mod files _before_ pushing the desired git tag.
-
-Commits and tags pushed by the workflow bot are PGP-signed ("go-openapi[bot]").
 
 ## Other files
 
