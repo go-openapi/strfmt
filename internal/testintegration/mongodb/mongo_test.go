@@ -3,7 +3,7 @@
 
 //go:build testintegration
 
-package testintegration_test
+package mongodb_test
 
 import (
 	"context"
@@ -215,7 +215,7 @@ func TestObjectId(t *testing.T) {
 
 // stringFormatRoundTrip is a helper for types that serialize as embedded BSON documents
 // with a "data" string field (most strfmt string-based types).
-func stringFormatRoundTrip(t *testing.T, coll *mongo.Collection, id string, input bson.Marshaler, output bson.Unmarshaler, originalStr string) {
+func stringFormatRoundTrip(t *testing.T, coll *mongo.Collection, id string, input bson.Marshaler, output bson.Unmarshaler, _ string) {
 	t.Helper()
 
 	doc := bson.M{"_id": id, "value": input}

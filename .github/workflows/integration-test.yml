@@ -20,6 +20,20 @@ jobs:
         image: mongo:7
         ports:
           - 27017:27017
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: strfmt_integration_test
+          MARIADB_USER: strfmt_test
+          MARIADB_PASSWORD: strfmt_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - uses: actions/checkout@v4
@@ -32,4 +46,5 @@ jobs:
         working-directory: internal/testintegration
         env:
           MONGODB_URI: mongodb://localhost:27017
+          MARIADB_DSN: "strfmt_test:strfmt_test@tcp(localhost:3306)/strfmt_integration_test?parseTime=true&loc=UTC"
         run: go test -tags testintegration -v -count=1 ./...
