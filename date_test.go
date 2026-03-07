@@ -34,23 +34,21 @@ func TestDate(t *testing.T) {
 
 	txt, err := pp.MarshalText()
 	require.NoError(t, err)
-	assert.Equal(t, orig, string(txt))
+	assert.EqualT(t, orig, string(txt))
 
 	err = pp.UnmarshalJSON(bj)
 	require.NoError(t, err)
-	assert.Equal(t, orig, pp.String())
+	assert.EqualT(t, orig, pp.String())
 
 	err = pp.UnmarshalJSON([]byte(`"1972/01/01"`))
 	require.Error(t, err)
 
-	b, err := pp.MarshalJSON()
-	require.NoError(t, err)
-	assert.Equal(t, bj, b)
+	assert.JSONMarshalAsT(t, string(bj), pp)
 
 	var dateZero Date
 	err = dateZero.UnmarshalJSON([]byte(jsonNull))
 	require.NoError(t, err)
-	assert.Equal(t, Date{}, dateZero)
+	assert.EqualT(t, Date{}, dateZero)
 }
 
 func TestDate_Scan(t *testing.T) {
@@ -61,13 +59,13 @@ func TestDate_Scan(t *testing.T) {
 	for _, value := range values {
 		result := Date{}
 		_ = (&result).Scan(value)
-		assert.Equal(t, date, result, "value: %#v", value)
+		assert.EqualT(t, date, result, "value: %#v", value)
 	}
 
 	dd := Date{}
 	err := dd.Scan(nil)
 	require.NoError(t, err)
-	assert.Equal(t, Date{}, dd)
+	assert.EqualT(t, Date{}, dd)
 
 	err = dd.Scan(19700101)
 	require.Error(t, err)
@@ -102,7 +100,7 @@ func TestDate_IsDate(t *testing.T) {
 		{"2017-12-22T01:02:03Z", false},
 	}
 	for _, test := range tests {
-		assert.Equal(t, test.valid, IsDate(test.value), "value [%s] should be valid: [%t]", test.value, test.valid)
+		assert.EqualT(t, test.valid, IsDate(test.value), "value [%s] should be valid: [%t]", test.value, test.valid)
 	}
 }
 
@@ -137,9 +135,9 @@ func TestGobEncodingDate(t *testing.T) {
 	dec := gob.NewDecoder(&b)
 	err = dec.Decode(&result)
 	require.NoError(t, err)
-	assert.Equal(t, now.Year(), time.Time(result).Year())
-	assert.Equal(t, now.Month(), time.Time(result).Month())
-	assert.Equal(t, now.Day(), time.Time(result).Day())
+	assert.EqualT(t, now.Year(), time.Time(result).Year())
+	assert.EqualT(t, now.Month(), time.Time(result).Month())
+	assert.EqualT(t, now.Day(), time.Time(result).Day())
 }
 
 func TestDate_Equal(t *testing.T) {
@@ -150,7 +148,7 @@ func TestDate_Equal(t *testing.T) {
 	d3 := Date(time.Date(2020, 11, 12, 13, 14, 15, 16, time.UTC))
 
 	//nolint:gocritic
-	assert.True(t, d1.Equal(d1), "Same Date should Equal itself")
-	assert.True(t, d1.Equal(d2), "Date instances should be equal")
-	assert.False(t, d1.Equal(d3), "Date instances should not be equal")
+	assert.TrueT(t, d1.Equal(d1), "Same Date should Equal itself")
+	assert.TrueT(t, d1.Equal(d2), "Date instances should be equal")
+	assert.FalseT(t, d1.Equal(d3), "Date instances should not be equal")
 }

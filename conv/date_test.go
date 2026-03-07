@@ -13,7 +13,7 @@ import (
 )
 
 func TestDateValue(t *testing.T) {
-	assert.Equal(t, strfmt.Date{}, DateValue(nil))
+	assert.EqualT(t, strfmt.Date{}, DateValue(nil))
 	date := strfmt.Date(time.Now())
-	assert.Equal(t, date, DateValue(&date))
+	assert.EqualT(t, date, DateValue(&date))
 }

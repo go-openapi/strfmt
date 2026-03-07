@@ -83,9 +83,9 @@ func invalidHostnames() []string {
 		"www.ex;ample.org",
 		"www.example_underscored.org",
 		// top-level domains too short
-		"www.詹姆斯.x",
+		"www.詹姆斯.x", //nolint:gosmopolitan // testing internationalized hostname validation
 		"a.b.c.d",
-		"www.詹姆斯.XN--1B4C3D", // invalid puny code
+		"www.詹姆斯.XN--1B4C3D", //nolint:gosmopolitan // testing internationalized hostname validation
 		"@www",
 		"a.b.c.é;ö",
 		// these code points are invalid
@@ -178,14 +178,14 @@ func validHostnames() []string {
 		"foo.x04", // valid (last part not a number)
 		"foo.0xz", // valid (last part not a number)
 		// localized hostnames
-		"www.詹姆斯.org",
+		"www.詹姆斯.org", //nolint:gosmopolitan // testing internationalized hostname validation
 		"example.إختبار",
 		"www.élégigôö.org",
-		"www.詹姆斯.london", // long top-level domain
+		"www.詹姆斯.london", //nolint:gosmopolitan // testing internationalized hostname validation
 		// localized top-level domains (valid unicode top-level domains)
 		"www.च.चऒ",
 		"www.कॉम",
-		"www.詹姆斯.xn--11b4c3d", // valid puny code
+		"www.詹姆斯.xn--11b4c3d", //nolint:gosmopolitan // testing internationalized hostname validation
 		"1.1.1.1",             // is a valid IP v4 address
 		"1.1.1.1.",            // is a valid IP v4 address, with trailing dot
 		"1.1.1.06",            // valid IP, with last part octal
@@ -273,7 +273,7 @@ func TestFormatUUID3(t *testing.T) {
 	var uuidZero UUID3
 	err := uuidZero.UnmarshalJSON([]byte(jsonNull))
 	require.NoError(t, err)
-	assert.Equal(t, UUID3(""), uuidZero)
+	assert.EqualT(t, UUID3(""), uuidZero)
 }
 
 func validUUID4s() []string {
@@ -316,7 +316,7 @@ func TestFormatUUID4(t *testing.T) {
 	var uuidZero UUID4
 	err := uuidZero.UnmarshalJSON([]byte(jsonNull))
 	require.NoError(t, err)
-	assert.Equal(t, UUID4(""), uuidZero)
+	assert.EqualT(t, UUID4(""), uuidZero)
 }
 
 func validUUID5s() []string {
@@ -359,7 +359,7 @@ func TestFormatUUID5(t *testing.T) {
 	var uuidZero UUID5
 	err := uuidZero.UnmarshalJSON([]byte(jsonNull))
 	require.NoError(t, err)
-	assert.Equal(t, UUID5(""), uuidZero)
+	assert.EqualT(t, UUID5(""), uuidZero)
 }
 
 func validUUID7s() []string {
@@ -401,7 +401,7 @@ func TestFormatUUID7(t *testing.T) {
 	var uuidZero UUID7
 	err := uuidZero.UnmarshalJSON([]byte(jsonNull))
 	require.NoError(t, err)
-	assert.Equal(t, UUID7(""), uuidZero)
+	assert.EqualT(t, UUID7(""), uuidZero)
 }
 
 func validUUIDs() []string {
@@ -452,7 +452,7 @@ func TestFormatUUID(t *testing.T) {
 	var uuidZero UUID
 	err := uuidZero.UnmarshalJSON([]byte(jsonNull))
 	require.NoError(t, err)
-	assert.Equal(t, UUID(""), uuidZero)
+	assert.EqualT(t, UUID(""), uuidZero)
 }
 
 func TestFormatISBN(t *testing.T) {
@@ -523,9 +523,7 @@ func TestFormatBase64(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, expected, subj2)
 
-	b, err = subj2.MarshalJSON()
-	require.NoError(t, err)
-	assert.Equal(t, bj, b)
+	assert.JSONMarshalAsT(t, string(bj), subj2)
 
 	testValid(t, "byte", str)
 	testInvalid(t, "byte", "ZWxpemFiZXRocG9zZXk") // missing pad char
@@ -534,19 +532,19 @@ func TestFormatBase64(t *testing.T) {
 	sqlvalue, err := subj2.Value()
 	require.NoError(t, err)
 	sqlvalueAsString, ok := sqlvalue.(string)
-	if assert.Truef(t, ok, "[%s]Value: expected driver value to be a string", "byte") {
+	if assert.TrueTf(t, ok, "[%s]Value: expected driver value to be a string", "byte") {
 		assert.Equal(t, str, sqlvalueAsString, "[%s]Value: expected %v and %v to be equal", "byte", sqlvalue, str)
 	}
 	// Scanner interface
 	var subj3 Base64
 	err = subj3.Scan([]byte(str))
 	require.NoError(t, err)
-	assert.Equal(t, str, subj3.String())
+	assert.EqualT(t, str, subj3.String())
 
 	var subj4 Base64
 	err = subj4.Scan(str)
 	require.NoError(t, err)
-	assert.Equal(t, str, subj4.String())
+	assert.EqualT(t, str, subj4.String())
 
 	err = subj4.Scan(123)
 	require.Error(t, err)
@@ -572,7 +570,7 @@ func testStringFormat(t *testing.T, what testableFormat, format, with string, va
 
 	val := reflect.Indirect(reflect.ValueOf(what))
 	strVal := val.String()
-	assert.Equalf(t, with, strVal, "[%s]UnmarshalText: expected %v and %v to be value equal", format, strVal, with)
+	assert.EqualTf(t, with, strVal, "[%s]UnmarshalText: expected %v and %v to be value equal", format, strVal, with)
 
 	b, err = what.MarshalText()
 	require.NoError(t, err)
@@ -588,7 +586,7 @@ func testStringFormat(t *testing.T, what testableFormat, format, with string, va
 	require.NoError(t, err)
 	val = reflect.Indirect(reflect.ValueOf(what))
 	strVal = val.String()
-	assert.Equal(t, with, strVal, "[%s]UnmarshalJSON: expected %v and %v to be value equal", format, strVal, with)
+	assert.EqualT(t, with, strVal, "[%s]UnmarshalJSON: expected %v and %v to be value equal", format, strVal, with)
 
 	b, err = what.MarshalJSON()
 	require.NoError(t, err)
@@ -600,13 +598,13 @@ func testStringFormat(t *testing.T, what testableFormat, format, with string, va
 	require.NoError(t, err)
 	val = reflect.Indirect(reflect.ValueOf(what))
 	strVal = val.String()
-	assert.Equal(t, with, strVal, "[%s]Scan: expected %v and %v to be value equal", format, strVal, with)
+	assert.EqualT(t, with, strVal, "[%s]Scan: expected %v and %v to be value equal", format, strVal, with)
 
 	err = what.Scan([]byte(with))
 	require.NoError(t, err)
 	val = reflect.Indirect(reflect.ValueOf(what))
 	strVal = val.String()
-	assert.Equal(t, with, strVal, "[%s]Scan: expected %v and %v to be value equal", format, strVal, with)
+	assert.EqualT(t, with, strVal, "[%s]Scan: expected %v and %v to be value equal", format, strVal, with)
 
 	err = what.Scan(123)
 	require.Error(t, err)
@@ -615,7 +613,7 @@ func testStringFormat(t *testing.T, what testableFormat, format, with string, va
 	sqlvalue, err := what.Value()
 	require.NoError(t, err)
 	sqlvalueAsString, ok := sqlvalue.(string)
-	if assert.Truef(t, ok, "[%s]Value: expected driver value to be a string", format) {
+	if assert.TrueTf(t, ok, "[%s]Value: expected driver value to be a string", format) {
 		assert.Equal(t, with, sqlvalueAsString, "[%s]Value: expected %v and %v to be equal", format, sqlvalue, with)
 	}
 
@@ -636,7 +634,7 @@ func resetValue(t *testing.T, format string, what encoding.TextUnmarshaler) {
 	require.NoError(t, err)
 	val := reflect.Indirect(reflect.ValueOf(what))
 	strVal := val.String()
-	assert.Equalf(t, "reset value", strVal, "[%s]UnmarshalText: expected %v and %v to be equal (reset value) ", format, strVal, "reset value")
+	assert.EqualTf(t, "reset value", strVal, "[%s]UnmarshalText: expected %v and %v to be equal (reset value) ", format, strVal, "reset value")
 }
 
 func testValid(t *testing.T, name, value string) {
@@ -1080,9 +1078,9 @@ func BenchmarkIsHostname(b *testing.B) {
 		"ex=ample.com",
 		"<foo>",
 		"www.example-hyphenated.org",
-		"www.詹姆斯.org",
+		"www.詹姆斯.org", //nolint:gosmopolitan // testing internationalized hostname validation
 		"www.élégigôö.org",
-		"www.詹姆斯.london",
+		"www.詹姆斯.london", //nolint:gosmopolitan // testing internationalized hostname validation
 	}
 	rxHostname := regexp.MustCompile(HostnamePattern)
 

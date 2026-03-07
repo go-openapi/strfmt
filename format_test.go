@@ -74,7 +74,7 @@ func istf3(s string) bool {
 	return strings.HasPrefix(s, "ff")
 }
 
-func init() {
+func init() { //nolint:gochecknoinits // registers test format in the default registry for testing
 	tf := testFormat("")
 	Default.Add("test-format", &tf, isTestFormat)
 }
@@ -84,42 +84,42 @@ func TestFormatRegistry(t *testing.T) {
 	f3 := bf("")
 	registry := NewFormats()
 
-	assert.True(t, registry.ContainsName("test-format"))
-	assert.True(t, registry.ContainsName("testformat"))
-	assert.False(t, registry.ContainsName("ttt"))
+	assert.TrueT(t, registry.ContainsName("test-format"))
+	assert.TrueT(t, registry.ContainsName("testformat"))
+	assert.FalseT(t, registry.ContainsName("ttt"))
 
-	assert.True(t, registry.Validates("testformat", "tfa"))
-	assert.False(t, registry.Validates("testformat", "ffa"))
+	assert.TrueT(t, registry.Validates("testformat", "tfa"))
+	assert.FalseT(t, registry.Validates("testformat", "ffa"))
 
-	assert.True(t, registry.Add("tf2", &f2, istf2))
-	assert.True(t, registry.ContainsName("tf2"))
-	assert.False(t, registry.ContainsName("tfw"))
-	assert.True(t, registry.Validates("tf2", "afa"))
+	assert.TrueT(t, registry.Add("tf2", &f2, istf2))
+	assert.TrueT(t, registry.ContainsName("tf2"))
+	assert.FalseT(t, registry.ContainsName("tfw"))
+	assert.TrueT(t, registry.Validates("tf2", "afa"))
 
-	assert.False(t, registry.Add("tf2", &f3, isbf))
-	assert.True(t, registry.ContainsName("tf2"))
-	assert.False(t, registry.ContainsName("tfw"))
-	assert.True(t, registry.Validates("tf2", "bfa"))
-	assert.False(t, registry.Validates("tf2", "afa"))
+	assert.FalseT(t, registry.Add("tf2", &f3, isbf))
+	assert.TrueT(t, registry.ContainsName("tf2"))
+	assert.FalseT(t, registry.ContainsName("tfw"))
+	assert.TrueT(t, registry.Validates("tf2", "bfa"))
+	assert.FalseT(t, registry.Validates("tf2", "afa"))
 
-	assert.False(t, registry.Add("tf2", &f2, istf2))
-	assert.True(t, registry.Add("tf3", &f2, istf3))
-	assert.True(t, registry.ContainsName("tf3"))
-	assert.True(t, registry.ContainsName("tf2"))
-	assert.False(t, registry.ContainsName("tfw"))
-	assert.True(t, registry.Validates("tf3", "ffa"))
+	assert.FalseT(t, registry.Add("tf2", &f2, istf2))
+	assert.TrueT(t, registry.Add("tf3", &f2, istf3))
+	assert.TrueT(t, registry.ContainsName("tf3"))
+	assert.TrueT(t, registry.ContainsName("tf2"))
+	assert.FalseT(t, registry.ContainsName("tfw"))
+	assert.TrueT(t, registry.Validates("tf3", "ffa"))
 
-	assert.True(t, registry.DelByName("tf3"))
-	assert.True(t, registry.Add("tf3", &f2, istf3))
+	assert.TrueT(t, registry.DelByName("tf3"))
+	assert.TrueT(t, registry.Add("tf3", &f2, istf3))
 
-	assert.True(t, registry.DelByName("tf3"))
-	assert.False(t, registry.DelByName("unknown"))
-	assert.False(t, registry.Validates("unknown", ""))
+	assert.TrueT(t, registry.DelByName("tf3"))
+	assert.FalseT(t, registry.DelByName("unknown"))
+	assert.FalseT(t, registry.Validates("unknown", ""))
 }
 
 type testStruct struct {
-	D          Date       `json:"d,omitempty"`
-	DT         DateTime   `json:"dt,omitempty"`
+	D          Date       `json:"d"`
+	DT         DateTime   `json:"dt"`
 	Dur        Duration   `json:"dur,omitempty"`
 	URI        URI        `json:"uri,omitempty"`
 	Eml        Email      `json:"eml,omitempty"`
@@ -142,12 +142,12 @@ type testStruct struct {
 	Rgbcolor   RGBColor   `json:"rgbcolor,omitempty"`
 	B64        Base64     `json:"b64,omitempty"`
 	Pw         Password   `json:"pw,omitempty"`
-	ULID       ULID       `json:"ulid,omitempty"`
+	ULID       ULID       `json:"ulid"`
 }
 
 func TestDecodeHook(t *testing.T) {
 	registry := NewFormats()
-	m := map[string]interface{}{
+	m := map[string]any{
 		"d":          "2014-12-15",
 		"dt":         "2012-03-02T15:06:05.999999999Z",
 		"dur":        "5s",
@@ -251,7 +251,7 @@ func TestDecodeDateTimeHook(t *testing.T) {
 			}
 			d, err := mapstructure.NewDecoder(cfg)
 			require.NoError(t, err)
-			input := make(map[string]interface{})
+			input := make(map[string]any)
 			input["datetime"] = tc.Input
 			err = d.Decode(input)
 			require.Error(t, err, "error expected got none")
@@ -290,7 +290,7 @@ func TestDecode_ULID_Hook_Negative(t *testing.T) {
 			}
 			d, err := mapstructure.NewDecoder(cfg)
 			require.NoError(t, err)
-			input := make(map[string]interface{})
+			input := make(map[string]any)
 			input["ulid"] = tc.Input
 			err = d.Decode(input)
 			require.Error(t, err, "error expected got none")
