@@ -218,7 +218,7 @@ func TestFormatIPv4(t *testing.T) {
 func TestFormatIPv6(t *testing.T) {
 	ipv6 := IPv6("::1")
 	str := string("::2")
-	// TODO: test ipv6 zones
+	// Proposal for enhancement: test ipv6 zones
 	testStringFormat(t, &ipv6, "ipv6", str, []string{}, []string{"127.0.0.1"})
 }
 

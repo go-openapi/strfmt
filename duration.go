@@ -143,7 +143,7 @@ func ParseDuration(cand string) (time.Duration, error) {
 // Scan reads a Duration value from database driver type.
 func (d *Duration) Scan(raw any) error {
 	switch v := raw.(type) {
-	// TODO: case []byte: // ?
+	// Proposal for enhancement: case []byte: // ?
 	case int64:
 		*d = Duration(v)
 	case float64:

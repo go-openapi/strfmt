@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-openapi/testify/v2/assert"
 	"github.com/go-openapi/testify/v2/require"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func TestBSONObjectId_fullCycle(t *testing.T) {
@@ -39,10 +38,10 @@ func TestBSONObjectId_fullCycle(t *testing.T) {
 	require.NoError(t, err)
 	assert.EqualT(t, id, idCopy)
 
-	bsonBytes, err := bson.Marshal(&id)
+	bsonBytes, err := id.MarshalBSON()
 	require.NoError(t, err)
 
-	err = bson.Unmarshal(bsonBytes, &idCopy)
+	err = idCopy.UnmarshalBSON(bsonBytes)
 	require.NoError(t, err)
 	assert.EqualT(t, id, idCopy)
 }

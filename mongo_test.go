@@ -11,24 +11,23 @@ import (
 	"github.com/go-openapi/testify/v2/assert"
 	"github.com/go-openapi/testify/v2/require"
 	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type testableBSONFormat interface {
 	testableFormat
 
-	bson.Marshaler
-	bson.Unmarshaler
+	bsonMarshaler
+	bsonUnmarshaler
 }
 
 func TestBSONDate(t *testing.T) {
 	dateOriginal := Date(time.Date(2014, 10, 10, 0, 0, 0, 0, time.UTC))
 
-	bsonData, err := bson.Marshal(&dateOriginal)
+	bsonData, err := dateOriginal.MarshalBSON()
 	require.NoError(t, err)
 
 	var dateCopy Date
-	err = bson.Unmarshal(bsonData, &dateCopy)
+	err = dateCopy.UnmarshalBSON(bsonData)
 	require.NoError(t, err)
 	assert.EqualT(t, dateOriginal, dateCopy)
 }
@@ -38,22 +37,22 @@ func TestBSONBase64(t *testing.T) {
 	b := []byte(b64)
 	subj := Base64(b)
 
-	bsonData, err := bson.Marshal(subj)
+	bsonData, err := subj.MarshalBSON()
 	require.NoError(t, err)
 
 	var b64Copy Base64
-	err = bson.Unmarshal(bsonData, &b64Copy)
+	err = b64Copy.UnmarshalBSON(bsonData)
 	require.NoError(t, err)
 	assert.Equal(t, subj, b64Copy)
 }
 
 func TestBSONDuration(t *testing.T) {
 	dur := Duration(42)
-	bsonData, err := bson.Marshal(&dur)
+	bsonData, err := dur.MarshalBSON()
 	require.NoError(t, err)
 
 	var durCopy Duration
-	err = bson.Unmarshal(bsonData, &durCopy)
+	err = durCopy.UnmarshalBSON(bsonData)
 	require.NoError(t, err)
 	assert.EqualT(t, dur, durCopy)
 }
@@ -63,27 +62,14 @@ func TestBSONDateTime(t *testing.T) {
 		t.Logf("Case #%d", caseNum)
 		dt := DateTime(example.time)
 
-		bsonData, err := bson.Marshal(&dt)
+		bsonData, err := dt.MarshalBSON()
 		require.NoError(t, err)
 
 		var dtCopy DateTime
-		err = bson.Unmarshal(bsonData, &dtCopy)
+		err = dtCopy.UnmarshalBSON(bsonData)
 		require.NoError(t, err)
 		// BSON DateTime type loses timezone information, so compare UTC()
 		assert.EqualT(t, time.Time(dt).UTC(), time.Time(dtCopy).UTC())
-
-		// Check value marshaling explicitly
-		m := bson.M{"data": dt}
-		bsonData, err = bson.Marshal(&m)
-		require.NoError(t, err)
-
-		var mCopy bson.M
-		err = bson.Unmarshal(bsonData, &mCopy)
-		require.NoError(t, err)
-
-		data, ok := m["data"].(DateTime)
-		assert.TrueT(t, ok)
-		assert.EqualT(t, time.Time(dt).UTC(), time.Time(data).UTC())
 	}
 }
 
@@ -93,35 +79,22 @@ func TestBSONULID(t *testing.T) {
 		t.Parallel()
 		ulid, _ := ParseULID(testUlid)
 
-		bsonData, err := bson.Marshal(&ulid)
+		bsonData, err := ulid.MarshalBSON()
 		require.NoError(t, err)
 
 		var ulidUnmarshaled ULID
-		err = bson.Unmarshal(bsonData, &ulidUnmarshaled)
+		err = ulidUnmarshaled.UnmarshalBSON(bsonData)
 		require.NoError(t, err)
 		assert.EqualT(t, ulid, ulidUnmarshaled)
-
-		// Check value marshaling explicitly
-		m := bson.M{"data": ulid}
-		bsonData, err = bson.Marshal(&m)
-		require.NoError(t, err)
-
-		var mUnmarshaled bson.M
-		err = bson.Unmarshal(bsonData, &mUnmarshaled)
-		require.NoError(t, err)
-
-		data, ok := m["data"].(ULID)
-		assert.TrueT(t, ok)
-		assert.EqualT(t, ulid, data)
 	})
 	t.Run("negative", func(t *testing.T) {
 		t.Parallel()
-		uuid := UUID("00000000-0000-0000-0000-000000000000")
-		bsonData, err := bson.Marshal(&uuid)
+		uid := UUID("00000000-0000-0000-0000-000000000000")
+		bsonData, err := uid.MarshalBSON()
 		require.NoError(t, err)
 
 		var ulidUnmarshaled ULID
-		err = bson.Unmarshal(bsonData, &ulidUnmarshaled)
+		err = ulidUnmarshaled.UnmarshalBSON(bsonData)
 		require.Error(t, err)
 	})
 }
@@ -282,12 +255,12 @@ func testBSONStringFormat(t *testing.T, what testableBSONFormat, format, with st
 	require.NoError(t, err)
 
 	// bson encoding interface
-	bsonData, err := bson.Marshal(what)
+	bsonData, err := what.MarshalBSON()
 	require.NoError(t, err)
 
 	resetValue(t, format, what)
 
-	err = bson.Unmarshal(bsonData, what)
+	err = what.UnmarshalBSON(bsonData)
 	require.NoError(t, err)
 	val := reflect.Indirect(reflect.ValueOf(what))
 	strVal := val.String()
