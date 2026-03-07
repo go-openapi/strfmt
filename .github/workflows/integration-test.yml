@@ -20,6 +20,33 @@ jobs:
         image: mongo:7
         ports:
           - 27017:27017
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: strfmt_integration_test
+          MARIADB_USER: strfmt_test
+          MARIADB_PASSWORD: strfmt_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      postgresql:
+        image: postgres:17
+        env:
+          POSTGRES_USER: strfmt_test
+          POSTGRES_PASSWORD: strfmt_test
+          POSTGRES_DB: strfmt_integration_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U strfmt_test -d strfmt_integration_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - uses: actions/checkout@v4
@@ -32,4 +59,6 @@ jobs:
         working-directory: internal/testintegration
         env:
           MONGODB_URI: mongodb://localhost:27017
+          MARIADB_DSN: "strfmt_test:strfmt_test@tcp(localhost:3306)/strfmt_integration_test?parseTime=true&loc=UTC"
+          POSTGRESQL_DSN: "postgres://strfmt_test:strfmt_test@localhost:5432/strfmt_integration_test?sslmode=disable"
         run: go test -tags testintegration -v -count=1 ./...

@@ -127,6 +127,33 @@ List of defined types:
 - [UUID7](https://www.rfc-editor.org/rfc/rfc9562.html#name-uuid-version-7)
 - [ULID](https://github.com/ulid/spec)
 
+### Database support
+
+All format types implement the `database/sql` interfaces `sql.Scanner` and `driver.Valuer`,
+so they work out of the box with Go's standard `database/sql` package and any SQL driver.
+
+All format types also implement BSON marshaling/unmarshaling for use with MongoDB
+(via [`go.mongodb.org/mongo-driver/v2`](https://pkg.go.dev/go.mongodb.org/mongo-driver/v2)).
+
+> **MySQL / MariaDB caveat for `DateTime`:**
+> The `go-sql-driver/mysql` driver has hard-coded handling for `time.Time` but does not
+> intercept type redefinitions like `strfmt.DateTime`. As a result, `DateTime.Value()` sends
+> an RFC 3339 string (e.g. `"2024-06-15T12:30:45.123Z"`) that MySQL/MariaDB rejects for
+> `DATETIME` columns.
+>
+> Workaround: set `strfmt.MarshalFormat` to a MySQL-compatible format such as
+> `strfmt.ISO8601LocalTime` and normalize to UTC before marshaling:
+>
+> ```go
+> strfmt.MarshalFormat = strfmt.ISO8601LocalTime
+> strfmt.NormalizeTimeForMarshal = func(t time.Time) time.Time { return t.UTC() }
+> ```
+>
+> See [#174](https://github.com/go-openapi/strfmt/issues/174) for details.
+
+Integration tests for MongoDB, MariaDB, and PostgreSQL run in CI to verify database roundtrip
+compatibility for all format types. See [`internal/testintegration/`](internal/testintegration/).
+
 ## Change log
 
 See <https://github.com/go-openapi/strfmt/releases>

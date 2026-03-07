@@ -4,6 +4,7 @@ linters:
   disable:
     - depguard
     - funlen
+    - gomoddirectives
     - godox
     - exhaustruct
     - nlreturn
