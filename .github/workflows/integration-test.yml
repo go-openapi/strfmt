@@ -69,7 +69,7 @@ jobs:
           ./...
 
       - name: Upload coverage artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           path: 'internal/testintegration/integration.coverage.ubuntu-latest-stable.out'
           name: 'integration.coverage.ubuntu-latest-stable'
@@ -78,5 +78,5 @@ jobs:
   collect-coverage:
     needs: [integration-test]
     if: ${{ !cancelled() && needs.integration-test.result == 'success' }}
-    uses: go-openapi/ci-workflows/.github/workflows/collect-coverage.yml@34a5baa33361844b1d2c70cd4548e3cea83529d9 # v0.2.13
+    uses: go-openapi/ci-workflows/.github/workflows/collect-coverage.yml@e8e6599fe480362cb0d5cbdac5b245cc833742f5 # v0.2.15
     secrets: inherit
