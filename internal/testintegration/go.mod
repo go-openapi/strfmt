@@ -1,6 +1,6 @@
 module github.com/go-openapi/strfmt/internal/testintegration
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/go-openapi/strfmt v0.26.1
