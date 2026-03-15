@@ -3,7 +3,7 @@ module github.com/go-openapi/strfmt/internal/testintegration
 go 1.24.0
 
 require (
-	github.com/go-openapi/strfmt v0.26.0
+	github.com/go-openapi/strfmt v0.26.1
 	github.com/go-openapi/strfmt/enable/mongodb v0.25.0
 	github.com/go-openapi/testify/v2 v2.4.1
 	github.com/go-sql-driver/mysql v1.9.3
