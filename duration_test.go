@@ -156,6 +156,12 @@ func TestDurationParser(t *testing.T) {
 		"1  hour":         1 * time.Hour,
 		"1  day":          24 * time.Hour,
 		"1  week":         7 * 24 * time.Hour,
+
+		// parse composite forms
+		"1m45s":                time.Minute + 45*time.Second,
+		"1 m45 s":              time.Minute + 45*time.Second,
+		"1m 45s":               time.Minute + 45*time.Second,
+		"1  minute 45 seconds": time.Minute + 45*time.Second,
 	}
 
 	for str, dur := range testcases {
@@ -171,14 +177,160 @@ func TestDurationParser(t *testing.T) {
 	}
 }
 
+// TestDurationParser_EdgeCases covers ParseDuration branches that the happy-path
+// tests don't exercise: the "0" shortcut, empty input left after a sign or
+// spaces, and inputs that have a decimal point but no digit on either side.
+func TestDurationParser_EdgeCases(t *testing.T) {
+	t.Run("zero shortcut returns 0 with no error", func(t *testing.T) {
+		for _, in := range []string{"0", "-0", "+0", "- 0", "+ 0"} {
+			input := in
+			t.Run(fmt.Sprintf("%q", input), func(t *testing.T) {
+				t.Parallel()
+
+				d, err := ParseDuration(input)
+				require.NoError(t, err)
+				assert.EqualT(t, time.Duration(0), d)
+			})
+		}
+	})
+
+	t.Run("empty payload after sign or spaces is rejected", func(t *testing.T) {
+		for _, in := range []string{"", "-", "+", "   ", "- ", "+    "} {
+			input := in
+			t.Run(fmt.Sprintf("%q", input), func(t *testing.T) {
+				t.Parallel()
+
+				_, err := ParseDuration(input)
+				require.Error(t, err)
+			})
+		}
+	})
+
+	t.Run("decimal point without digits is rejected", func(t *testing.T) {
+		// A leading '.' passes the first numeric check but produces neither an
+		// integer nor a fractional part, exercising the "I dare you" branch.
+		for _, in := range []string{".s", ".h", ".d", "-.s", "+.h", "1m .s"} {
+			input := in
+			t.Run(input, func(t *testing.T) {
+				t.Parallel()
+
+				_, err := ParseDuration(input)
+				require.Error(t, err)
+			})
+		}
+	})
+}
+
+// TestDurationParser_Overflow covers every numerical-overflow branch in
+// ParseDuration, leadingInt, and leadingFraction.
+//
+// The boundary values are derived from maxUint64 = 1<<63 (the magnitude of
+// math.MinInt64). The fractional cases hinge on (1<<63 - 1)/10 = 922337203685477580.
+func TestDurationParser_Overflow(t *testing.T) {
+	overflows := []struct {
+		name  string
+		input string
+	}{
+		{
+			name: "leadingInt overflow after multiply-add",
+			// 19 digits where the last one pushes x past 1<<63 even though
+			// x <= maxUint64/10 still held before the final multiply-add.
+			input: "9223372036854775809ns",
+		},
+		{
+			name: "v*unit fits but adding fraction overflows",
+			// 2562047*hours = 9223369200000000000 (under 1<<63), then
+			// +0.9*hours = +3240000000000 pushes the sum past 1<<63.
+			input: "2562047.9h",
+		},
+		{
+			name: "running total d exceeds maxUint64 across tokens",
+			// Each token alone fits (9e18 < 1<<63 ~= 9.223e18), but the sum
+			// (1.8e19) overflows in the in-loop d > maxUint64 check.
+			input: "9000000000000ms 9000000000000ms",
+		},
+		{
+			name: "single positive value equals maxUint64",
+			// 1<<63 ns parses through leadingInt successfully, then fails the
+			// final d > maxUint64-1 check (only the negative form fits, as
+			// time.Duration(math.MinInt64)).
+			input: "9223372036854775808ns",
+		},
+	}
+
+	for _, tt := range overflows {
+		tc := tt
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			d, err := ParseDuration(tc.input)
+			require.Errorf(t, err, "parsed %q as %v, expected overflow error", tc.input, d)
+		})
+	}
+}
+
+// TestDurationParser_FractionPrecisionLoss covers the three overflow-handling
+// branches in leadingFraction. Unlike integer overflow, fractional overflow is
+// not an error: per the helper's contract it stops accumulating precision and
+// returns the partial value, so the parser still produces a valid duration —
+// just truncated near the 18th fractional digit.
+func TestDurationParser_FractionPrecisionLoss(t *testing.T) {
+	// All three inputs share the same first 18 fractional digits; precision
+	// caps there regardless of which overflow branch fires, so the parsed
+	// value is identical.
+	const truncated = time.Duration(922337203) // 0.922337203 * 1s, rounded down
+
+	cases := []struct {
+		name  string
+		input string
+	}{
+		{
+			name: "y overflow on 19th digit",
+			// 19th digit '9' makes y = x*10+9 > 1<<63.
+			input: "0.9223372036854775809s",
+		},
+		{
+			name: "x exceeds threshold on 20th digit",
+			// 19th digit '8' lands y exactly at 1<<63 (still accepted),
+			// 20th digit then trips the x > (1<<63-1)/10 guard.
+			input: "0.92233720368547758089s",
+		},
+		{
+			name: "trailing digits skipped once overflow is set",
+			// 21st digit hits the early `if overflow` continue branch.
+			input: "0.922337203685477580891s",
+		},
+	}
+
+	for _, tt := range cases {
+		tc := tt
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			d, err := ParseDuration(tc.input)
+			require.NoError(t, err)
+			assert.EqualT(t, truncated, d)
+		})
+	}
+}
+
+// TestDurationParser_NegativeMinDuration verifies that the smallest
+// representable duration parses successfully even though the equivalent
+// positive value overflows.
+func TestDurationParser_NegativeMinDuration(t *testing.T) {
+	d, err := ParseDuration("-9223372036854775808ns")
+	require.NoError(t, err)
+	assert.EqualT(t, time.Duration(-1<<63), d)
+}
+
 func TestIsDuration_Caveats(t *testing.T) {
 	// This works too
 	e := IsDuration("45 weeks")
 	assert.TrueT(t, e)
 
-	// This works too
+	// This no longer works
 	e = IsDuration("45 weekz")
-	assert.TrueT(t, e)
+	assert.FalseT(t, e)
 
 	// This works too
 	e = IsDuration("12 hours")
@@ -236,8 +388,8 @@ func TestIssue169FractionalDuration(t *testing.T) {
 			ExpectError: true,
 		},
 		{
-			Input:       ".314159 d",
-			ExpectError: true,
+			Input:    ".314159 d",
+			Expected: "7h32m23.3376s",
 		},
 		{
 			Input:       "314159. d",
