@@ -169,9 +169,9 @@ This library ships under the [SPDX-License-Identifier: Apache-2.0](./LICENSE).
 ## Other documentation
 
 * [All-time contributors](./CONTRIBUTORS.md)
-* [Contributing guidelines](.github/CONTRIBUTING.md)
-* [Maintainers documentation](docs/MAINTAINERS.md)
-* [Code style](docs/STYLE.md)
+* [Contributing guidelines][contributing-doc-site]
+* [Maintainers documentation][maintainers-doc-site]
+* [Code style][style-doc-site]
 
 ## Cutting a new release
 
@@ -217,3 +217,7 @@ Maintainers can cut a new release by either:
 [goversion-url]: https://github.com/go-openapi/strfmt/blob/master/go.mod
 [top-badge]: https://img.shields.io/github/languages/top/go-openapi/strfmt
 [commits-badge]: https://img.shields.io/github/commits-since/go-openapi/strfmt/latest
+<!-- Organization docs -->
+[contributing-doc-site]: https://go-openapi.github.io/doc-site/contributing/contributing/index.html
+[maintainers-doc-site]: https://go-openapi.github.io/doc-site/maintainers/index.html
+[style-doc-site]: https://go-openapi.github.io/doc-site/contributing/style/index.html
