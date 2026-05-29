@@ -1,0 +1,17 @@
+name: Monitor bot PRs
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '18 6 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  monitor-pr:
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: go-openapi/ci-workflows/.github/workflows/monitor-bot-pr.yml@ff87261e2ba4b6a01b2b03bf2738b078e064c8c5 # v0.3.0
+    secrets: inherit
