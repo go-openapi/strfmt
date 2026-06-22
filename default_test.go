@@ -24,7 +24,11 @@ import (
 func TestFormatURI(t *testing.T) {
 	uri := URI("http://somewhere.com")
 	str := "http://somewhereelse.com"
-	testStringFormat(t, &uri, "uri", str, []string{}, []string{"somewhere.com"})
+	testStringFormat(t, &uri, "uri", str,
+		// "https://host#@frag": absolute URI with empty path and a fragment,
+		// valid per RFC 3986 (regression test for issue #131).
+		[]string{"https://portal.azure.com#@930d042f-8145-fragment"},
+		[]string{"somewhere.com"})
 }
 
 func validEmails() []string {
