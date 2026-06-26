@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/go-openapi/strfmt v0.26.3
 	github.com/go-openapi/strfmt/enable/mongodb v0.25.0
-	github.com/go-openapi/testify/v2 v2.5.1
+	github.com/go-openapi/testify/v2 v2.6.0
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/jackc/pgx/v5 v5.10.0
 	go.mongodb.org/mongo-driver/v2 v2.6.0
