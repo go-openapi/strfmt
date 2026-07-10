@@ -144,6 +144,7 @@ func (d *Duration) UnmarshalText(data []byte) error { // validation is performed
 func ParseDuration(s string) (time.Duration, error) {
 	// NOTE: this code is largely inspired by the standard library.
 	orig := s
+	s = strings.TrimSpace(s)
 	var d uint64
 	neg := false
 

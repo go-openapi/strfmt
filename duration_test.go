@@ -162,6 +162,11 @@ func TestDurationParser(t *testing.T) {
 		"1 m45 s":              time.Minute + 45*time.Second,
 		"1m 45s":               time.Minute + 45*time.Second,
 		"1  minute 45 seconds": time.Minute + 45*time.Second,
+
+		// leading and trailing spaces
+		"  1s ": 1 * time.Second,
+		"1s   ": 1 * time.Second,
+		"   1s": 1 * time.Second,
 	}
 
 	for str, dur := range testcases {
