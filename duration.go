@@ -144,6 +144,16 @@ func (d *Duration) UnmarshalText(data []byte) error { // validation is performed
 func ParseDuration(s string) (time.Duration, error) {
 	// NOTE: this code is largely inspired by the standard library.
 	orig := s
+
+	clean := strings.TrimSpace(s)
+	if clean != "" && (clean[0] == '-' || clean[0] == '+') {
+		clean = clean[1:]
+	}
+	// Check if it's an ISO 8601 duration
+	if len(clean) > 0 && clean[0] == 'P' {
+		return ParseISO8601Duration(s)
+	}
+
 	var d uint64
 	neg := false
 

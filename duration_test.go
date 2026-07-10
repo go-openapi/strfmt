@@ -71,6 +71,20 @@ func TestIsDuration_Failed(t *testing.T) {
 	assert.FalseT(t, e)
 }
 
+func TestParseDuration_ISO8601(t *testing.T) {
+	d, err := ParseDuration("P1D")
+	require.NoError(t, err)
+	assert.EqualT(t, 24*time.Hour, d)
+
+	d, err = ParseDuration("-PT1H30M")
+	require.NoError(t, err)
+	assert.EqualT(t, -(time.Hour + 30*time.Minute), d)
+
+	// Validate IsDuration supports ISO8601 format
+	assert.TrueT(t, IsDuration("P1D"))
+	assert.TrueT(t, IsDuration("-PT1H30M"))
+}
+
 func testDurationSQLScanner(t *testing.T, dur time.Duration) {
 	t.Helper()
 
