@@ -203,7 +203,7 @@ func TestDecodeHook(t *testing.T) {
 		Ssn:        SSN("111-11-1111"),
 		Hexcolor:   HexColor("#FFFFFF"),
 		Rgbcolor:   RGBColor("rgb(255,255,255)"),
-		B64:        Base64("ZWxpemFiZXRocG9zZXk="),
+		B64:        Base64("elizabethposey"), // decoded bytes: the hook now delegates to Base64.UnmarshalText
 		Pw:         Password("super secret stuff here"),
 		ULID:       ulid,
 	}
@@ -224,16 +224,21 @@ func TestDecodeHook(t *testing.T) {
 
 func TestDecodeDateTimeHook(t *testing.T) {
 	testCases := []struct {
-		Name  string
-		Input string
+		Name    string
+		Input   string
+		WantErr bool
 	}{
 		{
+			// The hook delegates to DateTime.UnmarshalText, which mirrors
+			// ParseDateTime: an empty string decodes to the zero datetime.
 			"empty datetime",
 			"",
+			false,
 		},
 		{
 			"invalid non empty datetime",
 			"2019-01-01abc",
+			true,
 		},
 	}
 	registry := NewFormats()
@@ -254,7 +259,13 @@ func TestDecodeDateTimeHook(t *testing.T) {
 			input := make(map[string]any)
 			input["datetime"] = tc.Input
 			err = d.Decode(input)
-			require.Error(t, err, "error expected got none")
+			if tc.WantErr {
+				require.Error(t, err, "error expected got none")
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, test.DateTime)
+			assert.True(t, test.DateTime.Equal(NewDateTime()), "empty datetime should decode to the zero value")
 		})
 	}
 }

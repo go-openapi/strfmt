@@ -12,11 +12,6 @@ import (
 	"unicode"
 )
 
-func init() { //nolint:gochecknoinits // registers duration format in the default registry
-	d := Duration(0)
-	Default.Add("duration", &d, IsDuration)
-}
-
 const (
 	hoursInDay = 24
 	daysInWeek = 7

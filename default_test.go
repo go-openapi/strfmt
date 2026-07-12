@@ -1095,11 +1095,17 @@ func BenchmarkIsUUID(b *testing.B) {
 
 func benchmarkIs(input []string, fn func(string) bool) func(*testing.B) {
 	return func(b *testing.B) {
-		var isTrue bool
+		var (
+			isTrue bool
+			i      int
+		)
 		b.ReportAllocs()
 		b.ResetTimer()
+		// Rotate with a local counter: under b.Loop(), b.N is constant during the loop, so input[b.N%len] would pin a
+		// single element instead of averaging the set.
 		for b.Loop() {
-			isTrue = fn(input[b.N%len(input)])
+			isTrue = fn(input[i%len(input)])
+			i++
 		}
 		fmt.Fprintln(io.Discard, isTrue)
 	}

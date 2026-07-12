@@ -87,7 +87,7 @@ func fuzzBuckets() map[string][]string {
 		"uuids":    {"uuid", "uuid3", "uuid4", "uuid5", "uuid7"},
 		"network":  {"uri", "email", "hostname", "ipv4", "ipv6", "cidr", "mac"},
 		"numeric":  {"isbn", "isbn10", "isbn13", "creditcard", "ssn"},
-		"temporal": {"date", "datetime", "duration"},
+		"temporal": {"date", "datetime", "durationiso8601", "durationhuman"},
 		"misc":     {"bsonobjectid", "hexcolor", "rgbcolor", "password", "byte", "ulid"},
 	}
 }
@@ -258,7 +258,7 @@ var fuzzFormatCorpus = map[string][]string{
 		"2014-12-15T08:00", // missing seconds/zone
 		"2014-12-15",       // date only
 	},
-	"duration": {
+	"durationhuman": {
 		"1s",
 		"300ms",
 		"-1.5h",
@@ -269,6 +269,30 @@ var fuzzFormatCorpus = map[string][]string{
 		"   1s            ",
 		"x",
 		"1s1s1s               1s   1s            ",
+	},
+	"durationiso8601": {
+		// strict-valid
+		"P1Y2M3DT4H5M6S",
+		"P2W",
+		"P1DT12H",
+		"PT0S",
+		"P4Y",
+		"PT1H0M5S",
+		// leniency the strict handle must reject
+		"PT0.5S", // fraction
+		"-P1D",   // sign
+		" P1D",   // surrounding space
+		"P1Y2D",  // gap (non-contiguous)
+		"P1Y2W",  // W combined with other components
+		"P२Y",    // non-ASCII (Devanagari) digit
+		"P",      // no components
+		"PT",     // no components after T
+		"P1",     // value without designator
+		// overflow boundaries (the bug the fraction path once had, and the uint64 / int64 ceilings)
+		"PT18446744073.9S",        // fraction path near the 1<<64 gap
+		"PT18446744073709551616S", // > MaxUint64
+		"PT9223372036854775807S",  // ~ MaxInt64 seconds (overflows nanoseconds)
+		"P9999999999999999999Y",
 	},
 	"uri": {
 		"http://foo.bar/baz?q=1#frag",
