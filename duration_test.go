@@ -5,6 +5,9 @@ package strfmt
 
 import (
 	"fmt"
+	"iter"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -395,6 +398,14 @@ func TestIssue169FractionalDuration(t *testing.T) {
 			Input:       "314159. d",
 			ExpectError: true,
 		},
+		{
+			Input:       "               ",
+			ExpectError: true,
+		},
+		{
+			Input:    "   1s            ",
+			Expected: "1s",
+		},
 	} {
 		fractionalDuration := tt
 
@@ -423,4 +434,31 @@ func TestIssue169FractionalDuration(t *testing.T) {
 			require.EqualT(t, fractionalDuration.Expected, dd.String())
 		})
 	}
+}
+
+func FuzzParseDuration(f *testing.F) {
+	// initial seed
+	cumulated := make([]string, 0, 100)
+	for generator := range durationGenerators() {
+		f.Add(generator)
+
+		cumulated = append(cumulated, generator)
+		f.Add(strings.Join(cumulated, ""))
+	}
+
+	f.Fuzz(func(t *testing.T, input string) {
+		require.NotPanics(t, func() {
+			_ = IsDuration(input)
+		})
+	})
+}
+
+func durationGenerators() iter.Seq[string] {
+	return slices.Values([]string{
+		"x",
+		"",
+		"1s",
+		"               ",
+		"   1s            ",
+	})
 }
