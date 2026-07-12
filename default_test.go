@@ -508,7 +508,7 @@ func TestFormatPassword(t *testing.T) {
 
 func TestFormatBase64(t *testing.T) {
 	const b64 string = "This is a byte array with unprintable chars, but it also isn"
-	str := base64.URLEncoding.EncodeToString([]byte(b64))
+	str := base64.StdEncoding.EncodeToString([]byte(b64))
 	b := []byte(b64)
 	expected := Base64(b)
 	bj := []byte("\"" + str + "\"")
@@ -552,6 +552,66 @@ func TestFormatBase64(t *testing.T) {
 
 	err = subj4.Scan(123)
 	require.Error(t, err)
+}
+
+// TestBase64StandardAlphabet locks issue #87: every Base64 serialization path uses the
+// standard RFC 4648 alphabet (+/), so a single value round-trips identically across text,
+// JSON, SQL, and BSON. The payload {0xFF, 0xFF} is chosen because it lands on alphabet
+// indices 62/63, the only place where standard base64 ("//8=") and base64url ("__8=")
+// disagree — so this test genuinely proves the alphabet, not merely self-consistency.
+func TestBase64StandardAlphabet(t *testing.T) {
+	raw := []byte{0xFF, 0xFF}
+	const std = "//8=" // standard base64 of {0xFF, 0xFF}
+	const url = "__8=" // base64url of the same bytes
+	value := Base64(raw)
+
+	t.Run("every encode path emits standard base64", func(t *testing.T) {
+		txt, err := value.MarshalText()
+		require.NoError(t, err)
+		assert.Equal(t, std, string(txt))
+
+		assert.Equal(t, std, value.String())
+
+		js, err := value.MarshalJSON()
+		require.NoError(t, err)
+		assert.Equal(t, `"`+std+`"`, string(js))
+
+		sqlv, err := value.Value()
+		require.NoError(t, err)
+		assert.Equal(t, std, sqlv)
+	})
+
+	t.Run("every decode path accepts standard base64", func(t *testing.T) {
+		var fromText Base64
+		require.NoError(t, fromText.UnmarshalText([]byte(std)))
+		assert.Equal(t, value, fromText)
+
+		var fromJSON Base64
+		require.NoError(t, fromJSON.UnmarshalJSON([]byte(`"`+std+`"`)))
+		assert.Equal(t, value, fromJSON)
+
+		var fromScanStr Base64
+		require.NoError(t, fromScanStr.Scan(std))
+		assert.Equal(t, value, fromScanStr)
+
+		var fromScanBytes Base64
+		require.NoError(t, fromScanBytes.Scan([]byte(std)))
+		assert.Equal(t, value, fromScanBytes)
+	})
+
+	t.Run("bson round-trips via standard alphabet", func(t *testing.T) {
+		doc, err := value.MarshalBSON()
+		require.NoError(t, err)
+		var back Base64
+		require.NoError(t, back.UnmarshalBSON(doc))
+		assert.Equal(t, value, back)
+	})
+
+	t.Run("text path no longer accepts base64url", func(t *testing.T) {
+		var b Base64
+		require.Error(t, b.UnmarshalText([]byte(url)),
+			"base64url must be rejected by the standard-alphabet text path")
+	})
 }
 
 type testableFormat interface {

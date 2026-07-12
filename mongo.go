@@ -4,7 +4,6 @@
 package strfmt
 
 import (
-	"encoding/base64"
 	"encoding/binary"
 	"fmt"
 	"time"
@@ -140,7 +139,7 @@ func (b *Base64) UnmarshalBSON(data []byte) error {
 		return fmt.Errorf("couldn't unmarshal bson bytes as base64: %w", ErrFormat)
 	}
 
-	vb, err := base64.StdEncoding.DecodeString(s)
+	vb, err := base64Encoding.DecodeString(s)
 	if err != nil {
 		return err
 	}
