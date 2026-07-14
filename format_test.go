@@ -143,6 +143,8 @@ type testStruct struct {
 	B64        Base64     `json:"b64,omitempty"`
 	Pw         Password   `json:"pw,omitempty"`
 	ULID       ULID       `json:"ulid"`
+	Cur        Currency   `json:"cur"`
+	Ctry       Country    `json:"ctry"`
 }
 
 func TestDecodeHook(t *testing.T) {
@@ -173,12 +175,16 @@ func TestDecodeHook(t *testing.T) {
 		"creditcard": "4111-1111-1111-1111",
 		"b64":        "ZWxpemFiZXRocG9zZXk=",
 		"ulid":       "7ZZZZZZZZZZZZZZZZZZZZZZZZZ",
+		"cur":        "EUR",
+		"ctry":       "USA",
 	}
 
 	date, _ := time.Parse(RFC3339FullDate, "2014-12-15")
 	dur, _ := ParseDuration("5s")
 	dt, _ := ParseDateTime("2012-03-02T15:06:05.999999999Z")
 	ulid, _ := ParseULID("7ZZZZZZZZZZZZZZZZZZZZZZZZZ")
+	cur, _ := ParseCurrency("EUR")
+	ctry, _ := ParseCountry("USA")
 
 	exp := &testStruct{
 		D:          Date(date),
@@ -206,6 +212,8 @@ func TestDecodeHook(t *testing.T) {
 		B64:        Base64("elizabethposey"), // decoded bytes: the hook now delegates to Base64.UnmarshalText
 		Pw:         Password("super secret stuff here"),
 		ULID:       ulid,
+		Cur:        cur,
+		Ctry:       ctry,
 	}
 
 	test := new(testStruct)

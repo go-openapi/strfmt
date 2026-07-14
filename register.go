@@ -34,6 +34,11 @@ func init() { //nolint:gochecknoinits // registers all default string formats in
 	//   - uuid4
 	//   - uuid5
 	//   - uuid7
+	//   - ulid
+	//   - date, date-time
+	//   - duration, duration-human, duration-iso8601
+	//   - objectid
+	//   - currency, country
 	Default = NewSeededFormats(nil, nil)
 
 	u := URI("")
@@ -117,6 +122,12 @@ func init() { //nolint:gochecknoinits // registers all default string formats in
 
 	ulid := ULID{}
 	Default.Add("ulid", &ulid, IsULID)
+
+	cur := Currency{}
+	Default.Add("currency", &cur, IsCurrency)
+
+	co := Country{}
+	Default.Add("country", &co, IsCountry)
 
 	def, ok := Default.(*defaultFormats)
 	if !ok {
