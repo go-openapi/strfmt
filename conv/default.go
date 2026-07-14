@@ -321,3 +321,33 @@ func PasswordValue(v *strfmt.Password) strfmt.Password {
 
 	return *v
 }
+
+// Currency returns a pointer to the [strfmt.Currency] value passed in.
+func Currency(v strfmt.Currency) *strfmt.Currency {
+	return &v
+}
+
+// CurrencyValue returns the value of the [strfmt.Currency] pointer passed in or
+// the default value if the pointer is nil.
+func CurrencyValue(v *strfmt.Currency) strfmt.Currency {
+	if v == nil {
+		return strfmt.Currency{}
+	}
+
+	return *v
+}
+
+// Country returns a pointer to the [strfmt.Country] value passed in.
+func Country(v strfmt.Country) *strfmt.Country {
+	return &v
+}
+
+// CountryValue returns the value of the [strfmt.Country] pointer passed in or
+// the default value if the pointer is nil.
+func CountryValue(v *strfmt.Country) strfmt.Country {
+	if v == nil {
+		return strfmt.Country{}
+	}
+
+	return *v
+}

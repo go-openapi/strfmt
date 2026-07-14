@@ -93,6 +93,10 @@ var (
 	_ bsonValueUnmarshaler = &DateTime{}
 	_ bsonValueMarshaler   = ObjectId{}
 	_ bsonValueUnmarshaler = &ObjectId{}
+	_ bsonMarshaler        = Currency{}
+	_ bsonUnmarshaler      = (*Currency)(nil)
+	_ bsonMarshaler        = Country{}
+	_ bsonUnmarshaler      = (*Country)(nil)
 )
 
 const (
@@ -630,5 +634,49 @@ func (id *ObjectId) UnmarshalBSONValue(_ byte, data []byte) error {
 	var oid [12]byte
 	copy(oid[:], data)
 	*id = ObjectId(oid)
+	return nil
+}
+
+// MarshalBSON document from this value.
+func (u Currency) MarshalBSON() ([]byte, error) {
+	return bsonlite.C.MarshalDoc(u.String())
+}
+
+// UnmarshalBSON document into this value.
+func (u *Currency) UnmarshalBSON(data []byte) error {
+	s, err := unmarshalBSONString(data, "Currency")
+	if err != nil {
+		return err
+	}
+
+	cur, err := ParseCurrency(s)
+	if err != nil {
+		return err
+	}
+
+	*u = cur
+
+	return nil
+}
+
+// MarshalBSON document from this value.
+func (u Country) MarshalBSON() ([]byte, error) {
+	return bsonlite.C.MarshalDoc(u.String())
+}
+
+// UnmarshalBSON document into this value.
+func (u *Country) UnmarshalBSON(data []byte) error {
+	s, err := unmarshalBSONString(data, "Country")
+	if err != nil {
+		return err
+	}
+
+	cur, err := ParseCountry(s)
+	if err != nil {
+		return err
+	}
+
+	*u = cur
+
 	return nil
 }

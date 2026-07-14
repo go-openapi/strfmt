@@ -88,7 +88,7 @@ func fuzzBuckets() map[string][]string {
 		"network":  {"uri", "email", "hostname", "ipv4", "ipv6", "cidr", "mac"},
 		"numeric":  {"isbn", "isbn10", "isbn13", "creditcard", "ssn"},
 		"temporal": {"date", "datetime", "durationiso8601", "durationhuman"},
-		"misc":     {"bsonobjectid", "hexcolor", "rgbcolor", "password", "byte", "ulid"},
+		"misc":     {"bsonobjectid", "hexcolor", "rgbcolor", "password", "byte", "ulid", "currency", "country"},
 	}
 }
 
@@ -424,5 +424,20 @@ var fuzzFormatCorpus = map[string][]string{
 		"7ZZZZZZZZZZZZZZZZZZZZZZZZZ",
 		"80000000000000000000000000", // overflows timestamp
 		"0123456789ABCDEFGHILMNOPQR", // contains excluded letters
+	},
+	"currency": {
+		"",
+		"ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",
+		" Z ",
+		"01",
+		"EUR",
+	},
+	"country": {
+		"",
+		"ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",
+		" Z ",
+		"01",
+		"XYZ",
+		"AUS",
 	},
 }
