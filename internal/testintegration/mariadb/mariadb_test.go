@@ -196,6 +196,25 @@ func TestMariaDB_Duration(t *testing.T) {
 	assert.EqualT(t, original, got)
 }
 
+func TestMariaDB_DurationISO8601(t *testing.T) {
+	// DurationISO8601.Value() returns int64 (nanoseconds), so use BIGINT column.
+	// SQL is a storage boundary: sub-second precision — which the strict text/JSON path refuses to emit — must survive.
+	db := setupMariaDB(t)
+	ctx := context.Background()
+	table := createTable(t, db, "value BIGINT")
+
+	original := strfmt.DurationISO8601(26*time.Hour + 1500*time.Millisecond)
+
+	_, err := db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, value) VALUES (?, ?)", table), "duriso1", original)
+	require.NoError(t, err)
+
+	var got strfmt.DurationISO8601
+	err = db.QueryRowContext(ctx, fmt.Sprintf("SELECT value FROM %s WHERE id = ?", table), "duriso1").Scan(&got)
+	require.NoError(t, err)
+
+	assert.EqualT(t, original, got)
+}
+
 // stringRoundTrip is a helper for string-based strfmt types stored in VARCHAR columns.
 func stringRoundTrip[T interface {
 	~string

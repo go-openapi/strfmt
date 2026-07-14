@@ -40,6 +40,8 @@ var (
 	_ bsonUnmarshaler = &Base64{}
 	_ bsonMarshaler   = Duration(0)
 	_ bsonUnmarshaler = (*Duration)(nil)
+	_ bsonMarshaler   = DurationISO8601(0)
+	_ bsonUnmarshaler = (*DurationISO8601)(nil)
 	_ bsonMarshaler   = DateTime{}
 	_ bsonUnmarshaler = &DateTime{}
 	_ bsonMarshaler   = ULID{}
@@ -167,6 +169,38 @@ func (d *Duration) UnmarshalBSON(data []byte) error {
 		return err
 	}
 	*d = Duration(rd)
+	return nil
+}
+
+// MarshalBSON renders the [ISODuration] as a BSON document.
+//
+// BSON is a storage boundary (like SQL): the value is emitted losslessly with [ISODuration.String], regardless of the
+// policy P — a strict policy that could not serialize a sign or sub-second precision on the interchange path must still
+// be persistable.
+func (d ISODuration[P]) MarshalBSON() ([]byte, error) {
+	return bsonlite.C.MarshalDoc(d.String())
+}
+
+// UnmarshalBSON reads an [ISODuration] from a BSON document.
+//
+// The stored value is our own canonical output, so it is parsed leniently: BSON is trusted storage, not external
+// interchange, and must round-trip whatever [ISODuration.MarshalBSON] emitted even under a strict policy P.
+func (d *ISODuration[P]) UnmarshalBSON(data []byte) error {
+	v, err := bsonlite.C.UnmarshalDoc(data)
+	if err != nil {
+		return err
+	}
+
+	s, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("couldn't unmarshal bson bytes value as ISODuration: %w", ErrFormat)
+	}
+
+	rd, err := parseISO8601Duration(s, DurationLenient{}.isoDurationConfig())
+	if err != nil {
+		return err
+	}
+	*d = ISODuration[P](rd)
 	return nil
 }
 

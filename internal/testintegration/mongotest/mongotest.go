@@ -142,6 +142,38 @@ func RunAllTests(t *testing.T) {
 		assert.EqualT(t, original, got)
 	})
 
+	t.Run("DurationISO8601", func(t *testing.T) {
+		// BSON is a storage boundary: DurationISO8601 marshals losslessly and parses back leniently, so values a
+		// strict policy refuses to emit on the text/JSON path (sub-second precision, a negative sign) must still
+		// round-trip through MongoDB.
+		values := map[string]time.Duration{
+			"whole":      42 * time.Second,
+			"sub_second": 26*time.Hour + 1500*time.Millisecond,
+			"negative":   -(time.Hour + 30*time.Minute),
+			"zero":       0,
+		}
+		for name, v := range values {
+			t.Run(name, func(t *testing.T) {
+				coll := Setup(t)
+				original := strfmt.DurationISO8601(v)
+
+				doc := bson.M{"_id": "duration_iso8601_test", "value": original}
+				result := roundTrip(t, coll, doc)
+
+				raw, ok := result["value"].(bson.D)
+				require.TrueT(t, ok, "expected bson.D for value, got %T", result["value"])
+
+				rawBytes, err := bson.Marshal(raw)
+				require.NoError(t, err)
+
+				var got strfmt.DurationISO8601
+				require.NoError(t, bson.Unmarshal(rawBytes, &got))
+
+				assert.EqualT(t, original, got)
+			})
+		}
+	})
+
 	t.Run("Base64", func(t *testing.T) {
 		coll := Setup(t)
 		payload := []byte("hello world with special chars: éàü")
