@@ -86,7 +86,7 @@ It also provides convenient extensions to go-openapi users.
 ## Durations
 
 We have 2 very different definitions of the "duration" format: the "human-readable" duration that used to be just "duration",
-and the new "duration-iso8601". There is no "dual" parser that accepts both formats: types are specialzed.
+and the new "duration-iso8601". There is no "dual" parser that accepts both formats: types are specialized.
 
 To clarify the situation, a new alias for the duration format is introduced "duration-human" (e.g. "1 ms"), as opposed to
 "duration-iso8601".
