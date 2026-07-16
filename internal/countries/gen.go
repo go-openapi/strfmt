@@ -29,6 +29,8 @@ func main() {
 	}
 }
 
+// source data for iso3166 countries,
+// credits: https://github.com/mrz1836/go-countries/blob/master/data/iso_3166.go
 func generate(targetFile string) error {
 	out, err := os.Create(targetFile)
 	if err != nil {
