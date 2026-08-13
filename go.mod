@@ -8,7 +8,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/google/uuid v1.6.0
 	github.com/oklog/ulid/v2 v2.1.2
-	golang.org/x/net v0.57.0
+	golang.org/x/net v0.58.0
 )
 
-require golang.org/x/text v0.40.0
+require golang.org/x/text v0.41.0
