@@ -5,7 +5,7 @@ updates:
     schedule:
       interval: "weekly"
       day: "friday"
-    open-pull-requests-limit: 2          # <- default is 5
+    open-pull-requests-limit: 2
     groups:                              # <- group all github actions updates in a single PR
       # 1. development-dependencies are auto-merged
       development-dependencies:
@@ -30,9 +30,10 @@ updates:
     directories:
       - "**/*"
     schedule:
-      interval: "weekly"
-      day: "friday"
-    open-pull-requests-limit: 4
+      interval: "cron"
+      cronjob: "35 7 * * 2,5"    # => update twice a week
+      timezone: CEST
+    open-pull-requests-limit: 12 # => {# modules} x {# groups}
     groups:
       development-dependencies:
         patterns:
