@@ -1,6 +1,6 @@
 module github.com/go-openapi/strfmt/enable/mongodb
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/go-openapi/strfmt v0.27.2
