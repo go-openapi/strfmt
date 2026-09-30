@@ -256,6 +256,16 @@ func TestDurationParser_Overflow(t *testing.T) {
 			// time.Duration(math.MinInt64)).
 			input: "9223372036854775808ns",
 		},
+		{
+			name: "two values of 1<<63 wrap the uint64 sum to zero",
+			// Each token is 1<<63 ns. The sum is 1<<64, which wraps to 0
+			// before d > maxUint64 can reject it.
+			input: "9223372036854775808ns 9223372036854775808ns",
+		},
+		{
+			name:  "negative pair of 1<<63 also wraps the uint64 sum to zero",
+			input: "-9223372036854775808ns 9223372036854775808ns",
+		},
 	}
 
 	for _, tt := range overflows {
