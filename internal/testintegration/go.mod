@@ -8,7 +8,7 @@ require (
 	github.com/go-openapi/testify/v2 v2.8.0
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/jackc/pgx/v5 v5.11.0
-	go.mongodb.org/mongo-driver/v2 v2.9.1
+	go.mongodb.org/mongo-driver/v2 v2.9.2
 )
 
 require (
