@@ -2,5 +2,5 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
-go.mongodb.org/mongo-driver/v2 v2.9.1 h1:jewiFs2m1/VOQp8qhFshX6hWZ+EAXDhZHXExAUMcOgQ=
-go.mongodb.org/mongo-driver/v2 v2.9.1/go.mod h1:SHKN0IWkKmEVGHLjXnni6s4wPKX4v86FTgOeJJFuXcA=
+go.mongodb.org/mongo-driver/v2 v2.9.2 h1:OCAdjI37pC/SVxucz/9CM8zD4jCdegtsY5QcKzYFCgE=
+go.mongodb.org/mongo-driver/v2 v2.9.2/go.mod h1:SHKN0IWkKmEVGHLjXnni6s4wPKX4v86FTgOeJJFuXcA=
