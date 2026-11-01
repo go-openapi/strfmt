@@ -4,7 +4,7 @@
 
 | Total Contributors | Total Contributions |
 | --- | --- |
-| 41  | 256  |
+| 42  | 257  |
 
 | Username | All Time Contribution Count | All Commits |
 | --- | --- | --- |
@@ -25,18 +25,19 @@
 | @chakrit | 2 | <https://github.com/go-openapi/strfmt/commits?author=chakrit> |
 | @bg451 | 2 | <https://github.com/go-openapi/strfmt/commits?author=bg451> |
 | @aleksandr-vin | 2 | <https://github.com/go-openapi/strfmt/commits?author=aleksandr-vin> |
-| @ujjwalsh | 1 | <https://github.com/go-openapi/strfmt/commits?author=ujjwalsh> |
-| @patchwright | 1 | <https://github.com/go-openapi/strfmt/commits?author=patchwright> |
-| @kenjones-cisco | 1 | <https://github.com/go-openapi/strfmt/commits?author=kenjones-cisco> |
-| @jwalter1-quest | 1 | <https://github.com/go-openapi/strfmt/commits?author=jwalter1-quest> |
-| @ccoVeille | 1 | <https://github.com/go-openapi/strfmt/commits?author=ccoVeille> |
-| @tylerb | 1 | <https://github.com/go-openapi/strfmt/commits?author=tylerb> |
-| @tzneal | 1 | <https://github.com/go-openapi/strfmt/commits?author=tzneal> |
-| @tklauser | 1 | <https://github.com/go-openapi/strfmt/commits?author=tklauser> |
-| @SuperQ | 1 | <https://github.com/go-openapi/strfmt/commits?author=SuperQ> |
-| @srizzling | 1 | <https://github.com/go-openapi/strfmt/commits?author=srizzling> |
-| @shawnps | 1 | <https://github.com/go-openapi/strfmt/commits?author=shawnps> |
 | @prashantv | 1 | <https://github.com/go-openapi/strfmt/commits?author=prashantv> |
+| @SashaMIT | 1 | <https://github.com/go-openapi/strfmt/commits?author=SashaMIT> |
+| @shawnps | 1 | <https://github.com/go-openapi/strfmt/commits?author=shawnps> |
+| @srizzling | 1 | <https://github.com/go-openapi/strfmt/commits?author=srizzling> |
+| @SuperQ | 1 | <https://github.com/go-openapi/strfmt/commits?author=SuperQ> |
+| @tklauser | 1 | <https://github.com/go-openapi/strfmt/commits?author=tklauser> |
+| @tzneal | 1 | <https://github.com/go-openapi/strfmt/commits?author=tzneal> |
+| @tylerb | 1 | <https://github.com/go-openapi/strfmt/commits?author=tylerb> |
+| @ccoVeille | 1 | <https://github.com/go-openapi/strfmt/commits?author=ccoVeille> |
+| @jwalter1-quest | 1 | <https://github.com/go-openapi/strfmt/commits?author=jwalter1-quest> |
+| @kenjones-cisco | 1 | <https://github.com/go-openapi/strfmt/commits?author=kenjones-cisco> |
+| @patchwright | 1 | <https://github.com/go-openapi/strfmt/commits?author=patchwright> |
+| @ujjwalsh | 1 | <https://github.com/go-openapi/strfmt/commits?author=ujjwalsh> |
 | @krnkl | 1 | <https://github.com/go-openapi/strfmt/commits?author=krnkl> |
 | @mstoykov | 1 | <https://github.com/go-openapi/strfmt/commits?author=mstoykov> |
 | @maxatome | 1 | <https://github.com/go-openapi/strfmt/commits?author=maxatome> |
