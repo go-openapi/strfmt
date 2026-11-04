@@ -7,7 +7,7 @@ require (
 	github.com/go-openapi/strfmt/enable/mongodb v0.27.4
 	github.com/go-openapi/testify/v2 v2.8.0
 	github.com/go-sql-driver/mysql v1.10.1
-	github.com/jackc/pgx/v5 v5.11.0
+	github.com/jackc/pgx/v5 v5.12.0
 	go.mongodb.org/mongo-driver/v2 v2.9.2
 )
 
@@ -18,7 +18,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/puddle/v2 v2.2.2 // indirect
+	github.com/jackc/puddle/v2 v2.2.3 // indirect
 	github.com/klauspost/compress v1.19.2 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
