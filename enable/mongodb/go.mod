@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/go-openapi/strfmt v0.27.4
-	go.mongodb.org/mongo-driver/v2 v2.9.2
+	go.mongodb.org/mongo-driver/v2 v2.10.0
 )
 
 replace github.com/go-openapi/strfmt => ../..
